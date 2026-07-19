@@ -1,0 +1,67 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { MessageCircle, ArrowDown } from "lucide-react";
+import { EmptyState } from "@/components/shared/empty-state";
+import { MessageBubble } from "@/components/crm/pipeline/customer-panel/message-bubble";
+import { MessageInput } from "@/components/crm/pipeline/customer-panel/message-input";
+import { useCustomerMessages } from "@/lib/store/customer-messages-store";
+
+export function ActivityFeed({ customerId }: { customerId: string }) {
+  const messages = useCustomerMessages(customerId);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const prevCount = useRef(messages.length);
+
+  useEffect(() => {
+    const grew = messages.length > prevCount.current;
+    prevCount.current = messages.length;
+    if (!grew) return;
+
+    if (!userScrolledUp) {
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    }
+  }, [messages.length, userScrolledUp]);
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setUserScrolledUp(distanceFromBottom > 120);
+  };
+
+  const jumpToBottom = () => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    setUserScrolledUp(false);
+  };
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div ref={scrollRef} onScroll={handleScroll} className="relative min-h-0 flex-1 overflow-y-auto p-4">
+        {messages.length === 0 ? (
+          <EmptyState icon={MessageCircle} message="No messages yet — start the conversation." />
+        ) : (
+          <div className="flex flex-col gap-3">
+            {messages.map((message) => (
+              <MessageBubble key={message.id} message={message} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {userScrolledUp && messages.length > 0 && (
+        <div className="flex justify-center pb-1">
+          <button
+            type="button"
+            onClick={jumpToBottom}
+            className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-body font-medium text-white shadow-md"
+          >
+            New messages <ArrowDown className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
+      <MessageInput customerId={customerId} />
+    </div>
+  );
+}

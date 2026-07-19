@@ -1,0 +1,324 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+
+  /* Brand */
+  --color-white: #ffffff;
+  --color-dark: #262626;
+  --color-secondary: #3f88fe;
+  --color-primary: #7539ff;
+  --color-light: #f7f8f9;
+
+  /* Grey scale */
+  --color-grey-900: #051021;
+  --color-grey-800: #182634;
+  --color-grey-700: #2e3648;
+  --color-grey-600: #45505c;
+  --color-grey-500: #5d6772;
+  --color-grey-400: #90878f;
+  --color-grey-300: #aab0b6;
+  --color-grey-200: #c6cace;
+  --color-grey-100: #e2e4e8;
+
+  /* Light scale */
+  --color-light-900: #fefefe;
+  --color-light-800: #f9f9fa;
+  --color-light-700: #f9f9fa;
+  --color-light-600: #f9fafb;
+  --color-light-500: #faf8fb;
+  --color-light-400: #f8f9fc;
+  --color-light-300: #fcfcfd;
+  --color-light-200: #fdfdfd;
+  --color-light-100: #fdfefe;
+
+  /* System colors */
+  --color-success: #27ae60;
+  --color-orange: #e04f16;
+  --color-purple: #800080;
+  --color-pink: #dd2590;
+  --color-info: #2f80ed;
+  --color-error: #ef1e1e;
+  --color-warning: #e2b93b;
+  --color-indigo: #3538c0;
+  --color-cyan: #06aed4;
+  --color-teal: #0e9384;
+
+  /* Transparent variants */
+  --color-grey-transparent: #f4f4f4;
+  --color-primary-transparent: #f9f5ff;
+  --color-secondary-transparent: #eef4ff;
+  --color-success-transparent: #f4f8f7;
+  --color-warning-transparent: #fef3f5;
+  --color-error-transparent: #fef4f4;
+  --color-info-transparent: #f4f9fe;
+  --color-pink-transparent: #fdf4f9;
+  --color-purple-transparent: #f9f2f9;
+  --color-orange-transparent: #fdf8f3;
+  --color-indigo-transparent: #ededf8;
+  --color-cyan-transparent: #e9f8fb;
+  --color-teal-transparent: #e9f5f4;
+  --color-light-transparent: #fdfdfe;
+
+  /* Primary shades */
+  --color-primary-900: #7539ff;
+  --color-primary-800: #8a6dff;
+  --color-primary-700: #978fff;
+  --color-primary-600: #a495ff;
+  --color-primary-500: #b2a7ff;
+  --color-primary-400: #c0b9ff;
+  --color-primary-300: #cfc8ff;
+  --color-primary-200: #dfdcff;
+  --color-primary-100: #efeeff;
+
+  /* Secondary shades */
+  --color-secondary-900: #5297fe;
+  --color-secondary-800: #65a2fe;
+  --color-secondary-700: #79aefe;
+  --color-secondary-600: #8cb9fe;
+  --color-secondary-500: #9fc5ff;
+  --color-secondary-400: #b2d1ff;
+  --color-secondary-300: #c5dcff;
+  --color-secondary-200: #d9e8ff;
+  --color-secondary-100: #ecf3ff;
+
+  /* Success shades */
+  --color-success-900: #3d6670;
+  --color-success-800: #52be80;
+  --color-success-700: #68c890;
+  --color-success-600: #7dcea0;
+  --color-success-500: #93d7b0;
+  --color-success-400: #a9dfbf;
+  --color-success-300: #beeacf;
+  --color-success-200: #d4efdf;
+  --color-success-100: #e9f7ef;
+
+  /* Warning shades */
+  --color-warning-900: #e5c04f;
+  --color-warning-800: #e8c762;
+  --color-warning-700: #ebce76;
+  --color-warning-600: #eed589;
+  --color-warning-500: #f1dc9d;
+  --color-warning-400: #f3e3b1;
+  --color-warning-300: #f6eac4;
+  --color-warning-200: #f9f1d8;
+  --color-warning-100: #fcf8eb;
+
+  /* Error shades */
+  --color-error-900: #f13535;
+  --color-error-800: #f24d48;
+  --color-error-700: #f4625e;
+  --color-error-600: #f57878;
+  --color-error-500: #f78f8f;
+  --color-error-400: #f9a5a5;
+  --color-error-300: #fabcbc;
+  --color-error-200: #fcd2d2;
+  --color-error-100: #fde9e9;
+
+  /* Info shades */
+  --color-info-900: #4f8def;
+  --color-info-800: #6999f1;
+  --color-info-700: #7da6f2;
+  --color-info-600: #8fb3f4;
+  --color-info-500: #a2c0f6;
+  --color-info-400: #b5cdf8;
+  --color-info-300: #c8dafa;
+  --color-info-200: #dbe7fb;
+  --color-info-100: #eaf2fd;
+
+  /* Pink shades */
+  --color-pink-900: #e44798;
+  --color-pink-800: #e980a5;
+  --color-pink-700: #ef76b0;
+  --color-pink-600: #f388bb;
+  --color-pink-500: #f79fc6;
+  --color-pink-400: #fab2d2;
+  --color-pink-300: #fcc6dd;
+  --color-pink-200: #fed9e8;
+  --color-pink-100: #ffecf4;
+
+  /* Purple shades */
+  --color-purple-900: #8d1a8d;
+  --color-purple-800: #993399;
+  --color-purple-700: #a64da6;
+  --color-purple-600: #b366b3;
+  --color-purple-500: #c080c0;
+  --color-purple-400: #cc99cc;
+  --color-purple-300: #d9b3d9;
+  --color-purple-200: #e6cce6;
+  --color-purple-100: #f2e6f2;
+
+  /* Orange shades */
+  --color-orange-900: #e96438;
+  --color-orange-800: #ec7752;
+  --color-orange-700: #ef9f68;
+  --color-orange-600: #f4a67e;
+  --color-orange-500: #f7ac94;
+  --color-orange-400: #fac0a9;
+  --color-orange-300: #fccdbe;
+  --color-orange-200: #feded4;
+  --color-orange-100: #ffeee9;
+
+  /* Indigo shades */
+  --color-indigo-900: #435dc4;
+  --color-indigo-800: #5467db;
+  --color-indigo-700: #6b7be1;
+  --color-indigo-600: #7b93e7;
+  --color-indigo-500: #8ea2ec;
+  --color-indigo-400: #a0b0f1;
+  --color-indigo-300: #bac7f5;
+  --color-indigo-200: #d0daf9;
+  --color-indigo-100: #e7ecfc;
+
+  /* Cyan shades */
+  --color-cyan-900: #3f86d9;
+  --color-cyan-800: #5d8fdd;
+  --color-cyan-700: #75c7e2;
+  --color-cyan-600: #88cfe6;
+  --color-cyan-500: #9fd7ea;
+  --color-cyan-400: #b2dfef;
+  --color-cyan-300: #c6e7f3;
+  --color-cyan-200: #daeff7;
+  --color-cyan-100: #ecf7fb;
+
+  /* Teal shades */
+  --color-teal-900: #3b8e90;
+  --color-teal-800: #4e9ea0;
+  --color-teal-700: #6bafb0;
+  --color-teal-600: #83bfc0;
+  --color-teal-500: #9bcfd0;
+  --color-teal-400: #acd3cd;
+  --color-teal-300: #c0e2de;
+  --color-teal-200: #d5ede9;
+  --color-teal-100: #e9f7f4;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  /* NOTE: --color-secondary intentionally NOT aliased to the shadcn
+     --secondary slot below — brand "secondary" (#3f88fe) is a distinct
+     accent color (links, chart series), while the muted button/badge
+     variant uses --shadcn-muted-btn (grey scale) instead. See CLAUDE.md §3.3. */
+  --color-shadcn-muted-btn: var(--shadcn-muted-btn);
+  --color-shadcn-muted-btn-foreground: var(--shadcn-muted-btn-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: #f7f8f9;
+  --foreground: #262626;
+  --card: #ffffff;
+  --card-foreground: #262626;
+  --popover: #ffffff;
+  --popover-foreground: #262626;
+  --primary: #7539ff;
+  --primary-foreground: #ffffff;
+  --shadcn-muted-btn: #e2e4e8;
+  --shadcn-muted-btn-foreground: #262626;
+  --muted: #f4f4f4;
+  --muted-foreground: #5d6772;
+  --accent: #f9f5ff;
+  --accent-foreground: #7539ff;
+  --destructive: #ef1e1e;
+  --border: #e2e4e8;
+  --input: #e2e4e8;
+  --ring: #7539ff;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --shadcn-muted-btn: oklch(0.269 0 0);
+  --shadcn-muted-btn-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

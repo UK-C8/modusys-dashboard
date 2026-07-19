@@ -1,0 +1,111 @@
+import { mockCustomers, type Customer } from "@/lib/mock/pipeline";
+import { statusConfig, type StatusKey } from "@/lib/status";
+import { mockUsers } from "@/lib/mock/users";
+import { months } from "@/lib/constants/months";
+
+function mulberry32(seed: number) {
+  let a = seed;
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(7);
+
+const cityStateMap: Record<string, string> = {
+  Mumbai: "Maharashtra",
+  Bengaluru: "Karnataka",
+  Hyderabad: "Telangana",
+  Chennai: "Tamil Nadu",
+  Kolkata: "West Bengal",
+  Pune: "Maharashtra",
+  Delhi: "Delhi",
+  Ahmedabad: "Gujarat",
+};
+
+const architects = ["Ar. Kavita Rao", "Ar. Suresh Iyer", "Ar. Meenal Deshpande", null, null, null];
+
+export type CustomerProfile = {
+  customerId: string;
+  email: string;
+  phone: string;
+  area: string;
+  city: string;
+  state: string;
+  postcode: string;
+  architectName: string | null;
+  gst: string;
+  birthdayMonth: string;
+  birthdayDay: string;
+  createdAt: string; // ISO date
+  createdById: string;
+};
+
+function slug(name: string) {
+  return name.toLowerCase().replace(/[^a-z]+/g, ".");
+}
+
+// Derived deterministically from the existing pipeline Customer record
+// rather than a second hand-authored dataset — profile fields are a
+// plausible expansion of the same mock customer, not new "real" data.
+export function getCustomerProfile(customer: Customer): CustomerProfile {
+  const [area, city] = customer.address.split(", ");
+  const state = cityStateMap[city] ?? "—";
+  const seed = customer.id.charCodeAt(customer.id.length - 1) + customer.id.length;
+  const localRand = mulberry32(seed)();
+
+  const createdDaysAgo = 5 + Math.floor(localRand * 180);
+  const createdAt = new Date(Date.now() - createdDaysAgo * 24 * 60 * 60 * 1000).toISOString();
+
+  return {
+    customerId: customer.id,
+    email: `${slug(customer.name)}@gmail.com`,
+    phone: `+91 ${9000000000 + (seed * 137) % 999999999}`.slice(0, 13),
+    area,
+    city,
+    state,
+    postcode: String(400000 + Math.floor(localRand * 99999)),
+    architectName: architects[seed % architects.length],
+    gst: `27ABCDE${1000 + (seed * 31) % 9000}F1Z${seed % 10}`,
+    birthdayMonth: months[seed % 12],
+    birthdayDay: String(1 + (seed % 28)),
+    createdAt,
+    createdById: mockUsers[seed % mockUsers.length].id,
+  };
+}
+
+export type CustomerQuote = {
+  id: string;
+  quoteNumber: string;
+  date: string;
+  status: StatusKey;
+  finalOfferLakh: number;
+};
+
+// TODO: real cross-reference once the Quotes module (still a placeholder
+// page) has actual data — for now, one quote synthesized per customer with
+// an offer, linking to the /quotes list page (no detail route exists yet).
+export function getCustomerQuotes(customer: Customer): CustomerQuote[] {
+  if (customer.finalOfferLakh === null) return [];
+  const seed = customer.id.length + customer.name.length;
+  const statusPool: StatusKey[] = ["draft", "approved", "in-production", "completed"];
+  return [
+    {
+      id: `quote-${customer.id}`,
+      quoteNumber: `Q-${1000 + seed}`,
+      date: customer.lastActivity,
+      status: statusPool[seed % statusPool.length],
+      finalOfferLakh: customer.finalOfferLakh,
+    },
+  ];
+}
+
+export { statusConfig };
+
+// A handful of customers get seeded demo activity/media so both the
+// populated and empty states are real, exercised cases — not just designed
+// on paper. Everyone else starts with a clean slate.
+export const SEEDED_CUSTOMER_IDS = mockCustomers.slice(0, 4).map((c) => c.id);

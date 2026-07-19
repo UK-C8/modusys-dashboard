@@ -1,0 +1,75 @@
+"use client";
+
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
+import { EditableField } from "@/components/crm/pipeline/customer-panel/editable-field";
+import { StatusBadge } from "@/components/shared/status-badge";
+import { getCustomerProfile, getCustomerQuotes } from "@/lib/mock/customer-detail";
+import { profileOverridesStore, useProfileOverride } from "@/lib/store/customer-profile-overrides-store";
+import type { Customer } from "@/lib/mock/pipeline";
+
+export function DetailsSection({ customer }: { customer: Customer }) {
+  const profile = getCustomerProfile(customer);
+  const overrides = useProfileOverride(customer.id);
+  const merged = { ...profile, ...overrides };
+  const quotes = getCustomerQuotes(customer);
+
+  const save = (field: Parameters<typeof profileOverridesStore.setField>[1]) => (value: string) =>
+    profileOverridesStore.setField(customer.id, field, value);
+
+  return (
+    <div className="flex flex-col gap-5 p-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <EditableField label="Address" value={merged.area} onSave={save("area")} />
+        <EditableField label="City" value={merged.city} onSave={save("city")} />
+        <EditableField label="State" value={merged.state} onSave={save("state")} />
+        <EditableField label="Postcode" value={merged.postcode} onSave={save("postcode")} />
+        <EditableField label="Email" value={merged.email} onSave={save("email")} />
+        <EditableField label="Phone" value={merged.phone} onSave={save("phone")} />
+        <EditableField label="GST No" value={merged.gst} onSave={save("gst")} />
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="text-xs font-body text-grey-500">Birthday</span>
+          <span className="text-sm font-body text-grey-900">
+            {merged.birthdayMonth} {merged.birthdayDay}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-body text-grey-500">Architect</span>
+        <span className="text-sm font-body text-grey-900">
+          {profile.architectName ?? <span className="text-grey-300">Not associated</span>}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-body text-grey-500">Associated Quotes</span>
+        {quotes.length === 0 ? (
+          <span className="text-sm font-body text-grey-300">No quotes yet.</span>
+        ) : (
+          quotes.map((quote) => (
+            <Link
+              key={quote.id}
+              href="/quotes"
+              className="flex items-center justify-between gap-2 rounded-lg border border-grey-100 bg-light-600/60 px-3 py-2 transition-colors hover:bg-light-600"
+            >
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-body font-medium text-grey-800">{quote.quoteNumber}</span>
+                <span className="text-xs font-body text-grey-400">
+                  {new Date(quote.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={quote.status} />
+                <span className="text-sm font-body font-semibold text-grey-800">
+                  ₹{quote.finalOfferLakh.toFixed(1)}L
+                </span>
+                <ExternalLink className="h-3.5 w-3.5 text-grey-300" />
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,20 @@
+import { TopNavbar } from "@/components/layout/top-navbar";
+import { Footer } from "@/components/layout/footer";
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import { ToastViewport } from "@/components/shared/toast-viewport";
+import { TaskPanel } from "@/components/crm/tasks/task-panel";
+import { CustomerPanel } from "@/components/crm/pipeline/customer-panel/customer-panel";
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-screen w-full flex-col bg-background">
+      <TopNavbar />
+      <main className="flex-1 overflow-y-auto p-4 pb-20 lg:p-6 lg:pb-6">{children}</main>
+      <Footer />
+      <MobileBottomNav />
+      <ToastViewport />
+      <TaskPanel />
+      <CustomerPanel />
+    </div>
+  );
+}
