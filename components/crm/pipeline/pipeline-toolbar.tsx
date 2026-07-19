@@ -34,10 +34,10 @@ export function PipelineToolbar({
     stageFilter === "all" ? "All Stages" : pipelineStages.find((s) => s.key === stageFilter)?.label;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center gap-3 overflow-x-auto sm:flex-wrap sm:justify-between">
+      <div className="flex shrink-0 items-center gap-2">
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-700 transition-colors hover:bg-light-600">
+          <DropdownMenuTrigger className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-700 transition-colors hover:bg-light-600">
             {activeStageLabel}
             <ChevronDown className="h-3.5 w-3.5 text-grey-400" />
           </DropdownMenuTrigger>
@@ -57,32 +57,32 @@ export function PipelineToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button variant="outline" size="sm" onClick={onOpenFilters}>
+        <Button variant="outline" size="sm" onClick={onOpenFilters} className="shrink-0 whitespace-nowrap">
           <SlidersHorizontal className="h-4 w-4" />
           Filters
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         {view === "list" && (
           <>
-            <Button variant="ghost" size="sm" onClick={onExpandAll}>
+            <Button variant="ghost" size="sm" onClick={onExpandAll} className="shrink-0 whitespace-nowrap">
               <ChevronsUpDown className="h-4 w-4" />
               Expand all
             </Button>
-            <Button variant="ghost" size="sm" onClick={onCollapseAll}>
+            <Button variant="ghost" size="sm" onClick={onCollapseAll} className="shrink-0 whitespace-nowrap">
               <ChevronsDownUp className="h-4 w-4" />
               Collapse all
             </Button>
           </>
         )}
 
-        <div className="flex rounded-lg bg-light-600 p-0.5">
+        <div className="flex shrink-0 rounded-lg bg-light-600 p-0.5">
           <button
             type="button"
             onClick={() => onViewChange("kanban")}
             className={cn(
-              "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-body font-medium transition-colors",
+              "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-body font-medium transition-colors",
               view === "kanban" ? "bg-card text-primary shadow-sm" : "text-grey-400 hover:text-grey-700"
             )}
           >
@@ -93,7 +93,7 @@ export function PipelineToolbar({
             type="button"
             onClick={() => onViewChange("list")}
             className={cn(
-              "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-body font-medium transition-colors",
+              "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-body font-medium transition-colors",
               view === "list" ? "bg-card text-primary shadow-sm" : "text-grey-400 hover:text-grey-700"
             )}
           >
