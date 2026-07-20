@@ -4,6 +4,7 @@ import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { ToastViewport } from "@/components/shared/toast-viewport";
 import { TaskPanel } from "@/components/crm/tasks/task-panel";
 import { CustomerPanel } from "@/components/crm/pipeline/customer-panel/customer-panel";
+import { ArchitectPanel } from "@/components/architects/architect-panel";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -15,6 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <ToastViewport />
       <TaskPanel />
       <CustomerPanel />
+      <ArchitectPanel />
     </div>
   );
 }

@@ -11,6 +11,8 @@ export type OrgUser = {
   // TODO: no real "last active" tracking yet — backend needs to log this per
   // session (Phase B3). Mocked here so the column isn't left blank.
   lastActive: string; // ISO date
+  mustChangePassword?: boolean;
+  passwordUpdatedAt?: string; // ISO date
 };
 
 export const orgDetails = {

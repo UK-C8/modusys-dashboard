@@ -2,6 +2,7 @@ import { mockCustomers, type Customer } from "@/lib/mock/pipeline";
 import { statusConfig, type StatusKey } from "@/lib/status";
 import { mockUsers } from "@/lib/mock/users";
 import { months } from "@/lib/constants/months";
+import { mockArchitects, fullName, type Architect } from "@/lib/mock/architects";
 
 function mulberry32(seed: number) {
   let a = seed;
@@ -26,7 +27,9 @@ const cityStateMap: Record<string, string> = {
   Ahmedabad: "Gujarat",
 };
 
-const architects = ["Ar. Kavita Rao", "Ar. Suresh Iyer", "Ar. Meenal Deshpande", null, null, null];
+// Links to the real Architect entity (lib/mock/architects.ts) by name, plus
+// nulls so a chunk of customers deterministically show no architect.
+const architectNamePool = [...mockArchitects.map(fullName), null, null, null];
 
 export type CustomerProfile = {
   customerId: string;
@@ -68,7 +71,7 @@ export function getCustomerProfile(customer: Customer): CustomerProfile {
     city,
     state,
     postcode: String(400000 + Math.floor(localRand * 99999)),
-    architectName: architects[seed % architects.length],
+    architectName: architectNamePool[seed % architectNamePool.length],
     gst: `27ABCDE${1000 + (seed * 31) % 9000}F1Z${seed % 10}`,
     birthdayMonth: months[seed % 12],
     birthdayDay: String(1 + (seed % 28)),
@@ -109,3 +112,17 @@ export { statusConfig };
 // populated and empty states are real, exercised cases — not just designed
 // on paper. Everyone else starts with a clean slate.
 export const SEEDED_CUSTOMER_IDS = mockCustomers.slice(0, 4).map((c) => c.id);
+
+export type ArchitectLinkedQuote = CustomerQuote & { customerId: string; customerName: string };
+
+// An architect's entire business value is the referred work — matched by
+// name against the same architectNamePool every customer profile draws from
+// (same TODO as getCustomerQuotes: real cross-reference once Quotes has data).
+export function getArchitectLinkedQuotes(architect: Architect): ArchitectLinkedQuote[] {
+  const name = fullName(architect);
+  return mockCustomers
+    .filter((c) => getCustomerProfile(c).architectName === name)
+    .flatMap((c) =>
+      getCustomerQuotes(c).map((q) => ({ ...q, customerId: c.id, customerName: c.name }))
+    );
+}

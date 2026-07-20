@@ -204,6 +204,51 @@ Tasks:
 
 ---
 
+## Phase 5c — Architects CRUD & Permissions
+
+**Goal:** replace the `/architects` placeholder with full CRUD, mirroring Phase 5b's permission pattern — Architect is a brand-new entity (no prior mock data existed), so this also wires it into Customers' `architectName` field for real cross-referencing instead of a floating string.
+
+Tasks:
+1. New `Architect` entity (`lib/mock/architects.ts`, `lib/store/architects-store.ts`): first/last name, repeatable partner names, mobile/office, company, Instagram, address/city/state/postcode, birthday. One unified store (not a base+overrides split like Customers) since there's no pre-existing shape to preserve.
+2. `ArchitectFormDialog` shared by Add/Edit: repeatable "Partner Name" rows via `useFieldArray` (add/remove, no cap, scrolls past a handful), Instagram auto-prefixed with `@` on blur, same validation pattern as Customers (name required, phone/postcode format checks). No credits banner on Add (business confirmed: stays free, unlike Customers).
+3. `ArchitectsTable`: search matches Name, Company, and Partner Name. Role-aware actions (View all roles, Edit Admin+, Delete Super Admin only) — identical ordering/styling to the Customers table. Duplicate-name detection (warning icon + tooltip) since the seed data intentionally includes a repeated "Ar Swapnil" entry, matching the real data's existing repeats — flagging only, no merge tool (business confirmed flagging is enough for now).
+4. `ArchitectPanel`: a lighter dedicated Sheet (not the Customer Detail Sidebar reused verbatim — content differs enough, chat/media doesn't apply here) showing full profile + partners + a **Linked Quotes/Customers** list, this being the architect record's actual business value. Instagram link opens in a new tab, mobile number is a `tel:` link.
+5. `DeleteArchitectDialog`: names how many quotes reference this architect and that deleting sets those to "Unassigned" rather than cascading (business confirmed: no denormalized historical name preserved). Soft delete + Undo toast, same as Customers.
+6. `getArchitectLinkedQuotes()` in `lib/mock/customer-detail.ts` cross-references by matching `getCustomerProfile(customer).architectName` against the new `Architect` list — replaces the old hardcoded 3-name placeholder array, so the "architect" a customer profile already showed is now a real, clickable entity.
+
+**Explicitly deferred:** a real merge-duplicates flow (flagging only, per business decision) and credits charging on Add (stays free, per business decision).
+
+**Backend TODO (Phase B3+):** move Edit/Delete permission checks into NestJS Architects module guards, same as Customers. Prisma: a proper `ArchitectPartner` one-to-many table instead of a string array, and the Quote→Architect foreign key should be nullable (`ON DELETE SET NULL`) to match the "Unassigned" fallback decided here.
+
+**Definition of Done:**
+- Staff can view every architect but never sees Edit or Delete; Admin sees Edit but not Delete; only Super Admin sees Delete.
+- A repeated name in the seed data shows the duplicate warning icon in the table.
+- Opening an architect's View panel shows every quote/customer that references them, matching what that customer's own profile already showed as their architect.
+
+---
+
+## Phase 5d — Credential Management (Set/Reset Password)
+
+**Goal:** give Super Admin control over user credentials — set at invite time, reset anytime — extending Phase 5's table and modal patterns directly, plus a lightweight audit trail since this is account-takeover-capable functionality.
+
+Tasks:
+1. `Invite New User` form extended with Password/Confirm Password (`withPasswordFields` schema helper, shared with Set Password), a "Generate secure password" button, a copy-icon, and the same live strength checklist from Sign Up (`PasswordRequirements`, reused as-is). On submit, the dialog shows a confirmation summary (name/email/role/password) with an explicit "won't be shown again" warning before Super Admin can dismiss it.
+2. New `SetPasswordDialog`: a key-icon action added to the Users & Roles table, Super Admin-only (icon fully hidden for other roles, matching the Customers/Architects pattern). Same password fields + checklist, plus an opt-in "Require password change on next login" checkbox (business confirmed: unchecked by default, per-action choice). No current-password confirmation, since this is a direct admin override.
+3. Forced-change flow: `mustChangePassword`/`passwordUpdatedAt` fields added to `OrgUser`. Sign In checks the flag (matched by typed email against the org roster — necessarily a simulation, since there's no real per-user password check yet, only the single shared mock dev account) and routes to a new `/change-password` page instead of `/dashboard` when set; that page collects New Password + Confirm New Password only (no temporary-password re-entry, since they're already authenticated) and clears the flag on save.
+4. "Forgot your password?" on Sign In now opens a real dialog (email → "Contact your admin to reset your password"). Business confirmed this is the **permanent** design, not a stopgap — no real reset-email infra planned.
+5. `securityAuditStore` + `SecurityAuditList` on the Users page: a simple last-20 feed ("Chirag Patel set a new password for Vijay Bhaskar — 2h ago"), logging both invites and password-set actions so this sensitive capability leaves a visible trail.
+
+**Explicitly deferred:** self-service "change my own password while logged in" (a separate, lower-risk flow requiring current-password confirmation — flagged for a future phase, not built here). Admin (non-Super-Admin) password-reset ability for Staff — business confirmed Super Admin only, across the board, matching the existing Customers/Architects delete-permission pattern.
+
+**Backend TODO (Phase B3+):** `PATCH /users/:id/password` as its own tightly-guarded NestJS route (separate from general user-update, so it can carry stricter rate-limiting), verifying Super Admin role server-side on every call — today's gating is UI-only, same caveat as every other permission check in this mock phase. Passwords must be hashed (bcrypt/argon2) before storage; the frontend's plain-text generate/reveal/copy behavior is only for Super Admin's one-time viewing convenience and is never persisted client-side (the mock store doesn't store the password value at all, only that a change occurred). Add a real `SecurityAuditLog` table (actorUserId, targetUserId, action, timestamp) to back the audit list — it's client/localStorage-only today.
+
+**Definition of Done:**
+- Only Super Admin sees the key icon in the Users table; Admin and Staff never see it.
+- Setting a password via the table shows a toast and a new entry at the top of "Recent security actions."
+- Checking "Require password change on next login," then signing in with that user's email, redirects to `/change-password` instead of `/dashboard`; saving there redirects to `/dashboard` and the flag clears.
+
+---
+
 ## Phase 6 — Integration Pass (Dashboard + CRM + User Management)
 
 **Goal:** make sure the three sections behave as one coherent product, not three separately-built screens.

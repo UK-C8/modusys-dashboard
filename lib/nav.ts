@@ -33,10 +33,14 @@ export const administrationItems: NavItem[] = [
 ];
 
 // Shown in the mobile bottom tab bar — a focused subset of the most-used
-// destinations (full nav still reachable via the sidebar drawer).
+// destinations. Everything else (including all of administrationItems) is
+// reachable via the bar's trailing "More" sheet, so nothing is unreachable
+// on mobile — it was previously (Purchase Orders/Customers/Architects/
+// Templates/Credits had no mobile entry point at all).
 export const mobileTabItems: NavItem[] = [
   navigationItems[0], // Dashboard
   navigationItems[1], // CRM
   navigationItems[2], // Quotes
-  administrationItems[0], // User Management
 ];
+
+export const mobileMoreItems: NavItem[] = navigationItems.slice(3);

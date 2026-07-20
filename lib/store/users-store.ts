@@ -67,6 +67,24 @@ export const usersStore = {
     persist();
     emit();
   },
+  // TODO: real PATCH /users/:id/password call, distinct from the general
+  // user-update route so it can carry stricter rate-limiting/role checks
+  // (Phase B3). The password value itself is never stored here — this mock
+  // only records that a change happened and whether it forces a re-set.
+  setPassword(userId: string, mustChangePassword: boolean) {
+    ensureHydrated();
+    users = users.map((u) =>
+      u.id === userId ? { ...u, mustChangePassword, passwordUpdatedAt: new Date().toISOString() } : u
+    );
+    persist();
+    emit();
+  },
+  clearMustChangePassword(userId: string) {
+    ensureHydrated();
+    users = users.map((u) => (u.id === userId ? { ...u, mustChangePassword: false } : u));
+    persist();
+    emit();
+  },
 };
 
 export function useOrgUsers() {

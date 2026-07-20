@@ -9,13 +9,15 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { Search, Copy } from "lucide-react";
+import { Search, Copy, KeyRound } from "lucide-react";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { RoleCell } from "@/components/users/role-cell";
+import { SetPasswordDialog } from "@/components/users/set-password-dialog";
+import { getCurrentUser } from "@/lib/session";
 import type { OrgUser } from "@/lib/mock/users";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +26,10 @@ function formatLastActive(iso: string) {
 }
 
 export function UsersTable({ users }: { users: OrgUser[] }) {
+  const canSetPassword = getCurrentUser().role === "super-admin";
   const [search, setSearch] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [passwordTarget, setPasswordTarget] = useState<OrgUser | null>(null);
 
   // Names that appear more than once — flagged inline so an admin notices a
   // possible duplicate account without opening every row.
@@ -98,8 +102,28 @@ export function UsersTable({ users }: { users: OrgUser[] }) {
           <span className="text-grey-500">{formatLastActive(getValue<string>())}</span>
         ),
       },
+      ...(canSetPassword
+        ? [
+            {
+              id: "actions",
+              header: "",
+              cell: ({ row }: { row: { original: OrgUser } }) => (
+                <Tooltip>
+                  <TooltipTrigger
+                    aria-label="Set Password"
+                    onClick={() => setPasswordTarget(row.original)}
+                    className="rounded-md p-1.5 text-grey-400 transition-colors hover:bg-light-600 hover:text-primary"
+                  >
+                    <KeyRound className="h-4 w-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>Set Password</TooltipContent>
+                </Tooltip>
+              ),
+            } as ColumnDef<OrgUser>,
+          ]
+        : []),
     ],
-    [duplicateNames]
+    [duplicateNames, canSetPassword]
   );
 
   const table = useReactTable({
@@ -162,6 +186,12 @@ export function UsersTable({ users }: { users: OrgUser[] }) {
           </tbody>
         </table>
       </div>
+
+      <SetPasswordDialog
+        open={!!passwordTarget}
+        onOpenChange={(open) => !open && setPasswordTarget(null)}
+        user={passwordTarget}
+      />
     </div>
   );
 }

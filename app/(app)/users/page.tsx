@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { OrgDetailsCard } from "@/components/users/org-details-card";
 import { UsersTable } from "@/components/users/users-table";
 import { AccessModal } from "@/components/users/access-modal";
+import { SecurityAuditList } from "@/components/users/security-audit-list";
 import { useOrgUsers } from "@/lib/store/users-store";
 import { orgDetails } from "@/lib/mock/users";
 
@@ -36,6 +37,8 @@ export default function UsersPage() {
       />
 
       <UsersTable users={users} />
+
+      <SecurityAuditList />
 
       <AccessModal open={modalOpen} onOpenChange={setModalOpen} />
     </div>

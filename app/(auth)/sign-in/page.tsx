@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +8,9 @@ import { z } from "zod";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconInput } from "@/components/auth/icon-input";
+import { ForgotPasswordDialog } from "@/components/auth/forgot-password-dialog";
 import { mockSignIn } from "@/lib/auth/mock";
+import { usersStore } from "@/lib/store/users-store";
 
 const signInSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email address"),
@@ -18,6 +21,7 @@ type SignInValues = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
   const router = useRouter();
+  const [forgotOpen, setForgotOpen] = useState(false);
   const {
     register,
     handleSubmit,
@@ -34,7 +38,13 @@ export default function SignInPage() {
       setError("password", { message: "Incorrect email or password" });
       return;
     }
-    router.push("/dashboard");
+    // No real per-user auth exists yet — the dev account is a single shared
+    // login, so "which org user is this" is simulated by matching the typed
+    // email against the roster, purely to demo the forced-change redirect.
+    const matchedUser = usersStore
+      .getSnapshot()
+      .find((u) => u.email.toLowerCase() === values.email.toLowerCase());
+    router.push(matchedUser?.mustChangePassword ? "/change-password" : "/dashboard");
   };
 
   return (
@@ -75,10 +85,16 @@ export default function SignInPage() {
           )}
         </Button>
 
-        <a href="#" className="text-center text-sm font-body text-secondary hover:underline">
+        <button
+          type="button"
+          onClick={() => setForgotOpen(true)}
+          className="text-center text-sm font-body text-secondary hover:underline"
+        >
           Forgot your password?
-        </a>
+        </button>
       </form>
+
+      <ForgotPasswordDialog open={forgotOpen} onOpenChange={setForgotOpen} />
     </div>
   );
 }
