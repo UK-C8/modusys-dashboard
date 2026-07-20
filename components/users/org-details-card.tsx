@@ -22,7 +22,7 @@ export function OrgDetailsCard({
 
   return (
     <Card className="border-grey-100">
-      <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <CardContent className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.label} className="flex items-start gap-3">
             <div className="rounded-lg bg-primary-transparent p-2 text-primary">
