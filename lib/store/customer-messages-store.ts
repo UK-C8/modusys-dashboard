@@ -16,6 +16,7 @@ export type CustomerMessage = {
   status: "sent" | "pending" | "error";
 };
 
+const STORAGE_KEY = "modusys.customerMessages.v1";
 const EMPTY: CustomerMessage[] = [];
 
 function seedMessages(): CustomerMessage[] {
@@ -61,11 +62,37 @@ function seedMessages(): CustomerMessage[] {
   ];
 }
 
+// Previously in-memory only, so any reload wiped every message — persisted
+// now the same way tasks/customers/architects already are. Note: voice
+// message audioUrl values are blob: URLs (from MediaRecorder) which die on
+// reload regardless of persistence — the message row survives, but old
+// recordings won't play back after a refresh. Fixing that needs real audio
+// storage, out of scope here.
 let messages: CustomerMessage[] = seedMessages();
+let hydrated = false;
 const listeners = new Set<() => void>();
+
+function persist() {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  } catch {
+    // ignore write failures
+  }
+}
 
 function emit() {
   for (const listener of listeners) listener();
+}
+
+function ensureHydrated() {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored) messages = JSON.parse(stored) as CustomerMessage[];
+  } catch {
+    // ignore parse failures, keep seed
+  }
 }
 
 export const customerMessagesStore = {
@@ -74,6 +101,7 @@ export const customerMessagesStore = {
     return () => listeners.delete(listener);
   },
   getSnapshot() {
+    ensureHydrated();
     return messages;
   },
   getServerSnapshot() {
@@ -82,6 +110,7 @@ export const customerMessagesStore = {
   // TODO: real POST /customers/:id/messages call (Phase B2). Simulates
   // latency + an occasional failure so the retry-on-failure UI is real.
   async sendMessage(customerId: string, text: string, senderId: string, mentionedUserIds: string[]) {
+    ensureHydrated();
     const id = `msg-${Date.now()}`;
     messages = [
       ...messages,
@@ -96,6 +125,7 @@ export const customerMessagesStore = {
         status: "pending",
       },
     ];
+    persist();
     emit();
 
     // TODO: real notification hook — POST /notifications per mentioned user.
@@ -106,16 +136,21 @@ export const customerMessagesStore = {
     await new Promise((r) => setTimeout(r, 500));
     const failed = Math.random() < 0.12;
     messages = messages.map((m) => (m.id === id ? { ...m, status: failed ? "error" : "sent" } : m));
+    persist();
     emit();
   },
   async retryMessage(id: string) {
+    ensureHydrated();
     messages = messages.map((m) => (m.id === id ? { ...m, status: "pending" } : m));
+    persist();
     emit();
     await new Promise((r) => setTimeout(r, 500));
     messages = messages.map((m) => (m.id === id ? { ...m, status: "sent" } : m));
+    persist();
     emit();
   },
   addVoiceMessage(customerId: string, senderId: string, audioUrl: string, durationSec: number) {
+    ensureHydrated();
     messages = [
       ...messages,
       {
@@ -129,9 +164,11 @@ export const customerMessagesStore = {
         status: "sent",
       },
     ];
+    persist();
     emit();
   },
   addSystemEvent(customerId: string, text: string) {
+    ensureHydrated();
     messages = [
       ...messages,
       {
@@ -144,6 +181,7 @@ export const customerMessagesStore = {
         status: "sent",
       },
     ];
+    persist();
     emit();
   },
 };
