@@ -18,6 +18,7 @@ export type MediaAttachment = {
   progress?: number; // 0-100 while uploading
 };
 
+const STORAGE_KEY = "modusys.customerMedia.v1";
 const EMPTY: MediaAttachment[] = [];
 
 function seedMedia(): MediaAttachment[] {
@@ -57,11 +58,38 @@ function seedMedia(): MediaAttachment[] {
   ];
 }
 
+// Previously in-memory only, so a reload wiped every uploaded file entry —
+// persisted now the same way chat/tasks/customers already are. Caveat: a
+// freshly-uploaded image/video's `url` is a blob: URL (from
+// URL.createObjectURL), which the browser invalidates on reload regardless
+// of persistence — the row survives, but its thumbnail won't render after a
+// refresh. Fixing that needs real upload storage (S3/R2, Phase B2), not
+// something localStorage can paper over.
 let media: MediaAttachment[] = seedMedia();
+let hydrated = false;
 const listeners = new Set<() => void>();
+
+function persist() {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(media));
+  } catch {
+    // ignore write failures
+  }
+}
 
 function emit() {
   for (const listener of listeners) listener();
+}
+
+function ensureHydrated() {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored) media = JSON.parse(stored) as MediaAttachment[];
+  } catch {
+    // ignore parse failures, keep seed
+  }
 }
 
 export const customerMediaStore = {
@@ -70,6 +98,7 @@ export const customerMediaStore = {
     return () => listeners.delete(listener);
   },
   getSnapshot() {
+    ensureHydrated();
     return media;
   },
   getServerSnapshot() {
@@ -78,6 +107,7 @@ export const customerMediaStore = {
   // TODO: real upload to S3/R2 (Phase B2) — simulates progress + occasional
   // failure so the upload-progress and error UI are real, not decorative.
   addFile(customerId: string, file: File) {
+    ensureHydrated();
     const id = `media-${Date.now()}-${Math.random()}`;
     const type: MediaType = file.type.startsWith("image/")
       ? "image"
@@ -100,6 +130,7 @@ export const customerMediaStore = {
         progress: 0,
       },
     ];
+    persist();
     emit();
 
     const interval = setInterval(() => {
@@ -113,6 +144,7 @@ export const customerMediaStore = {
         }
         return { ...m, progress: next };
       });
+      persist();
       emit();
     }, 300);
 
