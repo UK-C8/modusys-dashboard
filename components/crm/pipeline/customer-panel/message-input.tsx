@@ -153,9 +153,9 @@ export function MessageInput({ customerId }: { customerId: string }) {
                 send();
               }
             }}
-            placeholder="Message about this customer... use @ to mention someone"
+            placeholder="Message... use @ to mention"
             rows={1}
-            className="max-h-32 min-h-9 flex-1 resize-none rounded-2xl border border-grey-100 bg-light-600/60 px-3 py-2 text-sm font-body text-grey-900 outline-none placeholder:text-grey-300 focus:border-primary"
+            className="max-h-32 min-h-9 flex-1 resize-none overflow-hidden rounded-2xl border border-grey-100 bg-light-600/60 px-3 py-2 text-sm font-body text-grey-900 outline-none placeholder:truncate placeholder:text-grey-300 focus:border-primary"
           />
 
           <button
