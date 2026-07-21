@@ -274,8 +274,8 @@ Tasks:
 1. Templates top-level tab shell (`app/(app)/templates/page.tsx`), URL-persisted via `?tab=`, same pattern as CRM's Tickets/Tasks tabs — Material Spec is the only functional tab, the rest render a "coming in a later phase" empty state.
 2. Material Spec's own secondary tab bar — Material Specification | Material Library — URL-persisted via `?view=`, plus a `?category=` param remembering which of the 4/5 categories is selected within that sub-tab.
 3. Layout: left category rail + right-side list (settings-page pattern), same shape for both sub-tabs. 4 categories under Specification (Raw Material Description, Handle Type, Hinges Type, Client Responsibility), 5 under Library (Furniture Component, Raw Material Type, Internal Colours, External Colours, Thickness) — all backed by one generic `MaterialItem` shape and one store (`lib/store/material-spec-store.ts`), not 9 bespoke tables, per the functional notes.
-4. Add/Edit modal shared across all 9 categories: Name, Description (full textarea for Raw Material Description per its longer spec text, single-line for everything else), Active toggle.
-5. Deactivate-first pattern: the status pill in the list toggles Active/Inactive directly (Admin+), permanent Delete is a separate Super-Admin-only action behind a confirmation dialog warning that existing quotes may reference the value. Soft delete + Undo toast, same as Customers/Architects.
+4. Add/Edit modal shared across all 9 categories: Name, Description (full textarea for Raw Material Description per its longer spec text, single-line for everything else). No Active/Inactive status field — dropped per business call, these vocabulary entries are simply present or deleted, no separate visibility toggle.
+5. Delete is a Super-Admin-only action behind a confirmation dialog warning that existing quotes may reference the value. Soft delete + Undo toast, same as Customers/Architects (Edit stays Admin+).
 6. CSV Import/Export panel, shared above both sub-tabs (one config area, not duplicated per sub-tab): category picker (scopes Template/Export/Import to one category, not a combined export), Import Mode select (Upsert/Insert Only/Update Only) with inline helper text explaining each mode — the gap flagged for Shutters/Hardware to eventually reuse. Mock only: no real CSV parsing yet, confirms via toast.
 
 **Explicitly deferred (per business answers):**
@@ -283,11 +283,11 @@ Tasks:
 - Internal/External Colours are descriptive text only, no swatch/hex picker.
 - Thickness is not yet wired as a shared reference used by other areas (Shutters, Cabinet Types) since those don't exist yet either — it's just its own Material Library category for now.
 
-**Backend TODO (Phase B3+):** each of the 9 categories as its own Prisma lookup table sharing a common base shape (id, name, description?, active, createdAt) rather than fully bespoke schemas. Real CSV parsing per category. Enforce Edit = Admin+, permanent Delete = Super Admin only server-side, same as Customers/Architects.
+**Backend TODO (Phase B3+):** each of the 9 categories as its own Prisma lookup table sharing a common base shape (id, name, description?, createdAt) rather than fully bespoke schemas. Real CSV parsing per category. Enforce Edit = Admin+, permanent Delete = Super Admin only server-side, same as Customers/Architects.
 
 **Definition of Done:**
-- Both sub-tabs and the active category survive a page reload via URL params.
-- Staff can view every category's list but never sees Edit or Delete; Admin can toggle Active/Inactive and Edit but not permanently Delete; only Super Admin can Delete.
+- Both sub-tabs and the selected category survive a page reload via URL params.
+- Staff can view every category's list but never sees Edit or Delete; Admin can Edit but not permanently Delete; only Super Admin can Delete.
 - The CSV panel's Import Mode helper text is visible without opening a tooltip.
 
 ---

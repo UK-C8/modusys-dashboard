@@ -44,20 +44,18 @@ export type MaterialItem = {
   category: MaterialCategoryKey;
   name: string;
   description: string;
-  active: boolean;
   deleted?: boolean;
   createdAt: string;
 };
 
 let seedId = 0;
-function item(category: MaterialCategoryKey, name: string, description = "", active = true): MaterialItem {
+function item(category: MaterialCategoryKey, name: string, description = ""): MaterialItem {
   seedId += 1;
   return {
     id: `mat-${seedId}`,
     category,
     name,
     description,
-    active,
     createdAt: new Date(Date.now() - seedId * 86_400_000).toISOString(),
   };
 }

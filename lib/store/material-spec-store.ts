@@ -7,8 +7,8 @@ const STORAGE_KEY = "modusys.materialSpec.v1";
 
 // One flat array tagged by category, same reasoning as architects-store —
 // these are all brand-new lookup-table style entities with an identical
-// shape (id, name, description, active, deleted, createdAt), so one store
-// with a category filter beats 9 near-identical stores.
+// shape (id, name, description, deleted, createdAt), so one store with a
+// category filter beats 9 near-identical stores.
 let items: MaterialItem[] = mockMaterialItems;
 let hydrated = false;
 const listeners = new Set<() => void>();
@@ -40,7 +40,6 @@ export type NewMaterialItemInput = {
   category: MaterialCategoryKey;
   name: string;
   description: string;
-  active: boolean;
 };
 
 export const materialSpecStore = {
@@ -63,18 +62,9 @@ export const materialSpecStore = {
     emit();
     return created;
   },
-  updateItem(id: string, fields: Partial<Pick<MaterialItem, "name" | "description" | "active">>) {
+  updateItem(id: string, fields: Partial<Pick<MaterialItem, "name" | "description">>) {
     ensureHydrated();
     items = items.map((i) => (i.id === id ? { ...i, ...fields } : i));
-    persist();
-    emit();
-  },
-  // Deactivate-first: the default "remove" action just flips active off,
-  // since existing quotes may already reference this value — a dropdown
-  // vocabulary entry disappearing outright would break historical records.
-  setActive(id: string, active: boolean) {
-    ensureHydrated();
-    items = items.map((i) => (i.id === id ? { ...i, active } : i));
     persist();
     emit();
   },

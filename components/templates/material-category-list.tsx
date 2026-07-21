@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Plus, Pencil, Trash2, Power, ListTree } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ListTree } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -10,7 +10,6 @@ import { DeleteMaterialItemDialog } from "@/components/templates/delete-material
 import { useMaterialItems, materialSpecStore } from "@/lib/store/material-spec-store";
 import { toastStore } from "@/lib/store/toast-store";
 import { getCurrentUser } from "@/lib/session";
-import { cn } from "@/lib/utils";
 import type { MaterialCategory, MaterialItem } from "@/lib/mock/material-spec";
 
 export function MaterialCategoryList({ category }: { category: MaterialCategory }) {
@@ -89,9 +88,6 @@ export function MaterialCategoryList({ category }: { category: MaterialCategory 
                     Description
                   </th>
                 )}
-                <th className="px-4 py-2.5 text-xs font-body font-medium uppercase tracking-wide text-grey-500">
-                  Status
-                </th>
                 <th className="px-4 py-2.5 text-right text-xs font-body font-medium uppercase tracking-wide text-grey-500">
                   Actions
                 </th>
@@ -109,21 +105,6 @@ export function MaterialCategoryList({ category }: { category: MaterialCategory 
                   {!category.longDescription && (
                     <td className="px-4 py-3 text-sm font-body text-grey-500">{i.description || "—"}</td>
                   )}
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      disabled={!canEdit}
-                      onClick={() => materialSpecStore.setActive(i.id, !i.active)}
-                      className={cn(
-                        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-body font-medium transition-colors",
-                        i.active ? "bg-success-transparent text-success" : "bg-grey-transparent text-grey-500",
-                        canEdit && "hover:opacity-80"
-                      )}
-                    >
-                      <Power className="h-3 w-3" />
-                      {i.active ? "Active" : "Inactive"}
-                    </button>
-                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       {canEdit && (

@@ -20,7 +20,6 @@ import type { MaterialCategory, MaterialItem } from "@/lib/mock/material-spec";
 const itemSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string(),
-  active: z.boolean(),
 });
 
 type ItemFormValues = z.infer<typeof itemSchema>;
@@ -48,12 +47,12 @@ export function MaterialItemFormDialog({
   } = useForm<ItemFormValues>({
     resolver: zodResolver(itemSchema),
     mode: "onChange",
-    defaultValues: { name: "", description: "", active: true },
+    defaultValues: { name: "", description: "" },
   });
 
   useEffect(() => {
     if (!open) return;
-    reset(item ? { name: item.name, description: item.description, active: item.active } : { name: "", description: "", active: true });
+    reset(item ? { name: item.name, description: item.description } : { name: "", description: "" });
   }, [open, item, reset]);
 
   const submit = (values: ItemFormValues) => {
@@ -94,11 +93,6 @@ export function MaterialItemFormDialog({
               <Input id="mi-description" placeholder="Short description" {...register("description")} />
             )}
           </div>
-
-          <label className="flex items-center gap-2 text-sm font-body text-grey-700">
-            <input type="checkbox" className="h-3.5 w-3.5 accent-primary" {...register("active")} />
-            Active — available for selection in quotes
-          </label>
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
