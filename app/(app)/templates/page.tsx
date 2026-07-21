@@ -23,7 +23,10 @@ function TemplatesPageContent() {
   const tab = searchParams.get("tab") ?? "pricing-list";
 
   const setTab = (value: string) => {
-    const params = new URLSearchParams(searchParams);
+    // Sub-tab state (view/category) is per-tab, but the query keys are
+    // reused across tabs (Material Spec and Pricing List both use "view")
+    // — carrying one tab's value into another crashes it. Start clean.
+    const params = new URLSearchParams();
     params.set("tab", value);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };

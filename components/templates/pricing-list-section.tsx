@@ -10,7 +10,8 @@ export function PricingListSection() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const subTab = searchParams.get("view") ?? "furniture";
+  const rawSubTab = searchParams.get("view");
+  const subTab = rawSubTab === "furniture" || rawSubTab === "hardware" ? rawSubTab : "furniture";
 
   const setSubTab = (value: string) => {
     const params = new URLSearchParams(searchParams);

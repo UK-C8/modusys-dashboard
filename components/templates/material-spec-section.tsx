@@ -12,7 +12,8 @@ export function MaterialSpecSection() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const subTab = (searchParams.get("view") as MaterialCategoryGroup) ?? "specification";
+  const rawSubTab = searchParams.get("view");
+  const subTab: MaterialCategoryGroup = rawSubTab === "specification" || rawSubTab === "library" ? rawSubTab : "specification";
 
   const setSubTab = (value: MaterialCategoryGroup) => {
     const params = new URLSearchParams(searchParams);
