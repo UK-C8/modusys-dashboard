@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Users, Wallet, TrendingUp, Star } from "lucide-react";
 import { KpiCard } from "@/components/shared/kpi-card";
@@ -36,7 +37,15 @@ export function PipelineTab() {
   // shared store list changes (a customer created/deleted from elsewhere).
   useEffect(() => setCustomers(storeCustomers), [storeCustomers]);
   const [view, setView] = useLocalStorage<PipelineView>("modusys.pipeline.view", "kanban");
-  const [stageFilter, setStageFilter] = useState<PipelineStageKey | "all">("all");
+
+  // Deep-links like the Dashboard's Pipeline by Stage panel (/crm?stage=...)
+  // pre-filter to that stage on load — read once, not kept in sync after
+  // (the toolbar's own filter takes over from here).
+  const searchParams = useSearchParams();
+  const stageParam = searchParams.get("stage") as PipelineStageKey | null;
+  const [stageFilter, setStageFilter] = useState<PipelineStageKey | "all">(
+    stageParam && pipelineStages.some((s) => s.key === stageParam) ? stageParam : "all"
+  );
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<PipelineFilters>(defaultFilters);
 
@@ -119,6 +128,8 @@ export function PipelineTab() {
       <PipelineToolbar
         stageFilter={stageFilter}
         onStageFilterChange={setStageFilter}
+        search={filters.search}
+        onSearchChange={(search) => setFilters((prev) => ({ ...prev, search }))}
         view={view}
         onViewChange={setView}
         onOpenFilters={() => setFiltersOpen(true)}

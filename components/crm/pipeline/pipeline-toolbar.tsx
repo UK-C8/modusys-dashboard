@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, List, SlidersHorizontal, ChevronDown, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
+import { LayoutGrid, List, Search, SlidersHorizontal, ChevronDown, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,6 +16,8 @@ export type PipelineView = "kanban" | "list";
 export function PipelineToolbar({
   stageFilter,
   onStageFilterChange,
+  search,
+  onSearchChange,
   view,
   onViewChange,
   onOpenFilters,
@@ -24,6 +26,8 @@ export function PipelineToolbar({
 }: {
   stageFilter: PipelineStageKey | "all";
   onStageFilterChange: (value: PipelineStageKey | "all") => void;
+  search: string;
+  onSearchChange: (value: string) => void;
   view: PipelineView;
   onViewChange: (view: PipelineView) => void;
   onOpenFilters: () => void;
@@ -56,6 +60,16 @@ export function PipelineToolbar({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <div className="relative shrink-0">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-grey-300" />
+          <input
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search tickets"
+            className="w-40 rounded-lg border border-grey-100 bg-card py-1.5 pl-8 pr-2 text-sm font-body text-grey-700 outline-none placeholder:text-grey-300 focus:border-primary sm:w-56"
+          />
+        </div>
 
         <Button variant="outline" size="sm" onClick={onOpenFilters} className="shrink-0 whitespace-nowrap">
           <SlidersHorizontal className="h-4 w-4" />

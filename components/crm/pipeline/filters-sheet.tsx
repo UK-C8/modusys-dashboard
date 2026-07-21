@@ -42,16 +42,6 @@ export function FiltersSheet({
 
         <div className="flex flex-col gap-4 px-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="pipeline-search">Search</Label>
-            <Input
-              id="pipeline-search"
-              placeholder="Client name or address"
-              value={filters.search}
-              onChange={(e) => onChange({ ...filters, search: e.target.value })}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
             <Label>Final offer value (₹L)</Label>
             <div className="flex items-center gap-2">
               <Input

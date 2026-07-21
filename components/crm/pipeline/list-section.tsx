@@ -76,18 +76,10 @@ export function ListSection({
   onToggle: () => void;
   muted?: boolean;
 }) {
-  const [search, setSearch] = useState("");
   const [sort, setSort] = useState<CustomerSortOption>("last-activity");
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const filtered = useMemo(
-    () =>
-      sortCustomers(
-        customers.filter((c) => `${c.name} ${c.address}`.toLowerCase().includes(search.toLowerCase())),
-        sort
-      ),
-    [customers, search, sort]
-  );
+  const filtered = useMemo(() => sortCustomers(customers, sort), [customers, sort]);
 
   const table = useReactTable({
     data: filtered,
@@ -127,12 +119,6 @@ export function ListSection({
 
         {expanded && (
           <div className="flex shrink-0 items-center gap-2">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search"
-              className="hidden w-32 rounded-md border border-grey-100 px-2 py-1 text-xs font-body outline-none placeholder:text-grey-300 focus:border-primary sm:block"
-            />
             <SortMenu value={sort} onChange={setSort} />
             <button
               type="button"

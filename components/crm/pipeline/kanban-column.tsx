@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
-import { Search, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/shared/empty-state";
 import { CustomerCard } from "@/components/crm/pipeline/customer-card";
@@ -21,14 +21,10 @@ export function KanbanColumn({
   muted?: boolean;
   className?: string;
 }) {
-  const [search, setSearch] = useState("");
   const [sort, setSort] = useState<CustomerSortOption>("last-activity");
   const { setNodeRef, isOver } = useDroppable({ id: stage.key });
 
-  const filtered = customers.filter((c) =>
-    `${c.name} ${c.address}`.toLowerCase().includes(search.toLowerCase())
-  );
-  const sorted = sortCustomers(filtered, sort);
+  const sorted = sortCustomers(customers, sort);
   const colors = stageColorTokens[stage.color];
 
   return (
@@ -58,16 +54,7 @@ export function KanbanColumn({
         </span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-grey-300" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search"
-            className="w-full rounded-md border border-grey-100 bg-card py-1 pl-7 pr-2 text-xs font-body text-grey-700 outline-none placeholder:text-grey-300 focus:border-primary"
-          />
-        </div>
+      <div className="flex items-center justify-end gap-2">
         <SortMenu value={sort} onChange={setSort} />
       </div>
 

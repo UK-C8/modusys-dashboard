@@ -30,9 +30,9 @@ export function PipelineFunnelPanel() {
             {counts.map(({ stage, count }) => {
               if (count === 0) return null;
               return (
-                <button
+                <Link
                   key={stage.key}
-                  type="button"
+                  href={`/crm?tab=tickets&stage=${stage.key}`}
                   onMouseEnter={() => setActive(stage.key)}
                   onMouseLeave={() => setActive(null)}
                   onFocus={() => setActive(stage.key)}
@@ -55,7 +55,7 @@ export function PipelineFunnelPanel() {
             {counts.map(({ stage, count }) => (
               <Link
                 key={stage.key}
-                href="/crm"
+                href={`/crm?tab=tickets&stage=${stage.key}`}
                 onMouseEnter={() => setActive(stage.key)}
                 onMouseLeave={() => setActive(null)}
                 className={cn(
