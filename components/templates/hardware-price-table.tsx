@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { HardwarePriceFormDialog } from "@/components/templates/hardware-price-form-dialog";
 import { DeletePriceItemDialog } from "@/components/templates/delete-price-item-dialog";
+import { BulkActionConfirmDialog } from "@/components/templates/bulk-action-confirm-dialog";
 import { useHardwarePriceItems, pricingListStore } from "@/lib/store/pricing-list-store";
+import { useMaterialItems } from "@/lib/store/material-spec-store";
 import { toastStore } from "@/lib/store/toast-store";
 import { getCurrentUser } from "@/lib/session";
-import { hardwareCategories, hardwareBrands, rateAfterDiscount, type HardwarePriceItem } from "@/lib/mock/pricing-list";
+import { rateAfterDiscount, type HardwarePriceItem } from "@/lib/mock/pricing-list";
 
 export function HardwarePriceTable() {
   const currentUser = getCurrentUser();
@@ -18,19 +20,28 @@ export function HardwarePriceTable() {
   const canDelete = currentUser.role === "super-admin";
 
   const items = useHardwarePriceItems();
+  // Filters/bulk-actions always list every Material Library entry — a newly
+  // added Category/Brand is selectable immediately, even before any hardware
+  // row references it yet.
+  const categories = useMaterialItems("category");
+  const brands = useMaterialItems("brand");
+  const units = useMaterialItems("unit");
+  const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? "—";
+  const brandName = (id: string) => brands.find((b) => b.id === id)?.name ?? "—";
+  const unitName = (id: string) => units.find((u) => u.id === id)?.name ?? "—";
+
   const [categoryFilter, setCategoryFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [addOpen, setAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<HardwarePriceItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<HardwarePriceItem | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ description: string; apply: () => void } | null>(null);
 
   const filtered = useMemo(
     () =>
       items.filter(
-        (i) =>
-          (!categoryFilter || i.categories.includes(categoryFilter)) &&
-          (!brandFilter || i.brand === brandFilter)
+        (i) => (!categoryFilter || i.categoryId === categoryFilter) && (!brandFilter || i.brandId === brandFilter)
       ),
     [items, categoryFilter, brandFilter]
   );
@@ -64,37 +75,36 @@ export function HardwarePriceTable() {
           <h3 className="font-heading text-base font-semibold text-grey-900">Hardware Price List</h3>
           <p className="text-xs font-body text-grey-400">{items.length} SKUs</p>
         </div>
-        <Button size="sm" onClick={() => setAddOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add Hardware
-        </Button>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
-        >
-          <option value="">All categories</option>
-          {hardwareCategories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        <select
-          value={brandFilter}
-          onChange={(e) => setBrandFilter(e.target.value)}
-          className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
-        >
-          <option value="">All brands</option>
-          {hardwareBrands.map((b) => (
-            <option key={b} value={b}>
-              {b}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
+          >
+            <option value="">All categories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={brandFilter}
+            onChange={(e) => setBrandFilter(e.target.value)}
+            className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
+          >
+            <option value="">All brands</option>
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+          <Button size="sm" onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add Hardware
+          </Button>
+        </div>
       </div>
 
       {canEdit && selectedIds.length > 0 && (
@@ -103,24 +113,36 @@ export function HardwarePriceTable() {
           <select
             defaultValue=""
             onChange={(e) => {
-              if (e.target.value) pricingListStore.bulkAddCategory(selectedIds, e.target.value);
+              const value = e.target.value;
+              if (value) {
+                setPendingAction({
+                  description: `Set category to "${categoryName(value)}" for ${selectedIds.length} selected item(s)? This overwrites their current category.`,
+                  apply: () => pricingListStore.bulkSetCategory(selectedIds, value),
+                });
+              }
               e.target.value = "";
             }}
             className="rounded-md border border-grey-100 bg-card px-2 py-1 text-xs font-body text-grey-700 outline-none"
           >
             <option value="" disabled>
-              + Add category to selected
+              Set category for selected
             </option>
-            {hardwareCategories.map((c) => (
-              <option key={c} value={c}>
-                {c}
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
               </option>
             ))}
           </select>
           <select
             defaultValue=""
             onChange={(e) => {
-              if (e.target.value) pricingListStore.bulkSetBrand(selectedIds, e.target.value);
+              const value = e.target.value;
+              if (value) {
+                setPendingAction({
+                  description: `Set brand to "${brandName(value)}" for ${selectedIds.length} selected item(s)? This overwrites their current brand.`,
+                  apply: () => pricingListStore.bulkSetBrand(selectedIds, value),
+                });
+              }
               e.target.value = "";
             }}
             className="rounded-md border border-grey-100 bg-card px-2 py-1 text-xs font-body text-grey-700 outline-none"
@@ -128,22 +150,32 @@ export function HardwarePriceTable() {
             <option value="" disabled>
               Set brand for selected
             </option>
-            {hardwareBrands.map((b) => (
-              <option key={b} value={b}>
-                {b}
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
               </option>
             ))}
           </select>
           <button
             type="button"
-            onClick={() => pricingListStore.bulkAdjustDiscount(selectedIds, -2)}
+            onClick={() =>
+              setPendingAction({
+                description: `Decrease discount by 2% for ${selectedIds.length} selected item(s)?`,
+                apply: () => pricingListStore.bulkAdjustDiscount(selectedIds, -2),
+              })
+            }
             className="rounded-md border border-grey-100 bg-card px-2 py-1 text-xs font-body text-grey-700 hover:bg-light-600"
           >
             Discount −2%
           </button>
           <button
             type="button"
-            onClick={() => pricingListStore.bulkAdjustDiscount(selectedIds, 2)}
+            onClick={() =>
+              setPendingAction({
+                description: `Increase discount by 2% for ${selectedIds.length} selected item(s)?`,
+                apply: () => pricingListStore.bulkAdjustDiscount(selectedIds, 2),
+              })
+            }
             className="rounded-md border border-grey-100 bg-card px-2 py-1 text-xs font-body text-grey-700 hover:bg-light-600"
           >
             Discount +2%
@@ -170,7 +202,7 @@ export function HardwarePriceTable() {
             <thead className="bg-light-600">
               <tr>
                 {canEdit && <th className="w-8 px-4 py-2.5" />}
-                {["Article No.", "Category", "Brand", "Unit", "Description", "MRP", "Discount %", "Rate After Discount"].map((h) => (
+                {["Article No.", "Category", "Brand", "Description", "Unit", "MRP", "Discount %", "Rate After Discount"].map((h) => (
                   <th key={h} className="whitespace-nowrap px-4 py-2.5 text-xs font-body font-medium uppercase tracking-wide text-grey-500">
                     {h}
                   </th>
@@ -192,18 +224,14 @@ export function HardwarePriceTable() {
                     </td>
                   )}
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-body font-medium text-grey-900">{i.articleNo}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {i.categories.map((c) => (
-                        <span key={c} className="whitespace-nowrap rounded-full bg-grey-transparent px-2 py-0.5 text-xs font-body text-grey-600">
-                          {c}
-                        </span>
-                      ))}
-                    </div>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <span className="whitespace-nowrap rounded-full bg-grey-transparent px-2 py-0.5 text-xs font-body text-grey-600">
+                      {categoryName(i.categoryId)}
+                    </span>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{i.brand}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{i.unit}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{brandName(i.brandId)}</td>
                   <td className="max-w-xs px-4 py-3 text-sm font-body text-grey-500">{i.description || "—"}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{unitName(i.unitId)}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">₹{i.mrp}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{i.discountPct}%</td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-body font-semibold text-grey-900">
@@ -264,6 +292,17 @@ export function HardwarePriceTable() {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title={deleteTarget?.articleNo ?? null}
         onConfirm={handleDelete}
+      />
+
+      <BulkActionConfirmDialog
+        open={!!pendingAction}
+        onOpenChange={(open) => !open && setPendingAction(null)}
+        description={pendingAction?.description ?? null}
+        onConfirm={() => {
+          pendingAction?.apply();
+          toastStore.show("Change applied");
+          setPendingAction(null);
+        }}
       />
     </div>
   );

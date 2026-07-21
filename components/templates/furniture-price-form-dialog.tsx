@@ -25,6 +25,7 @@ export function FurniturePriceFormDialog({
   open,
   onOpenChange,
   item,
+  initialValues,
   onSubmit,
   onEditExisting,
 }: {
@@ -32,6 +33,10 @@ export function FurniturePriceFormDialog({
   onOpenChange: (open: boolean) => void;
   // Absent = Add mode; present = Edit mode, pre-filled.
   item?: FurniturePriceItem;
+  // Add mode only — pre-fills the four material fields (e.g. deep-linked
+  // from Cabinet Type's "+ Add this combination" shortcut) without forcing
+  // full Edit mode.
+  initialValues?: Partial<NewFurniturePriceInput>;
   onSubmit: (values: NewFurniturePriceInput) => void;
   onEditExisting: (existing: FurniturePriceItem) => void;
 }) {
@@ -41,9 +46,13 @@ export function FurniturePriceFormDialog({
 
   useEffect(() => {
     if (!open) return;
-    setValues(item ? { thicknessId: item.thicknessId, rawMaterialTypeId: item.rawMaterialTypeId, internalColourId: item.internalColourId, externalColourId: item.externalColourId, rate: item.rate } : emptyValues());
+    setValues(
+      item
+        ? { thicknessId: item.thicknessId, rawMaterialTypeId: item.rawMaterialTypeId, internalColourId: item.internalColourId, externalColourId: item.externalColourId, rate: item.rate }
+        : { ...emptyValues(), ...initialValues }
+    );
     setDuplicate(null);
-  }, [open, item]);
+  }, [open, item, initialValues]);
 
   const complete = values.thicknessId && values.rawMaterialTypeId && values.internalColourId && values.externalColourId && values.rate > 0;
 
@@ -103,11 +112,12 @@ export function FurniturePriceFormDialog({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="fp-rate">Rate (₹ per sq ft)</Label>
+            <Label htmlFor="fp-rate">Rate (sq.ft)</Label>
             <Input
               id="fp-rate"
               type="number"
               min={0}
+              step={0.01}
               value={values.rate || ""}
               onChange={(e) => setValues((v) => ({ ...v, rate: Number(e.target.value) }))}
             />
@@ -117,7 +127,7 @@ export function FurniturePriceFormDialog({
             <div className="flex flex-col gap-2 rounded-lg bg-warning-transparent px-3 py-2.5 text-sm font-body text-warning">
               <span className="flex items-start gap-1.5">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                This combination already exists (₹{duplicate.rate}/sq ft) — edit the existing entry instead?
+                This combination already exists ({duplicate.rate.toFixed(2)}/sq.ft) — edit the existing entry instead?
               </span>
               <Button
                 size="sm"

@@ -40,44 +40,16 @@ export const mockFurniturePriceItems: FurniturePriceItem[] = [
 
 // Hardware — Article No. + Brand together are the unique key (business
 // confirmed a generic part sold under two brands gets separate rows, since
-// they're priced differently), so Brand is single-value here, not a chip
-// field, even though Category stays multi-value.
-export const hardwareCategories = [
-  "Hinges",
-  "Tandem Runner",
-  "Lift Up",
-  "Kitchen Accessories",
-  "Handle",
-  "Kitchen Misc H/W",
-  "Light",
-  "Wardrobe Accessories",
-  "Qudro Runner",
-  "Accessories",
-];
-
-export const hardwareBrands = [
-  "Blum",
-  "Ebco",
-  "Hettich",
-  "Higold",
-  "Kessebohmer",
-  "Vita",
-  "Nimmi",
-  "Rehau",
-  "Olive",
-  "Astronea",
-  "The Furn",
-];
-
-export const hardwareUnits = ["Set", "Pcs", "Mtr", "Inch", "R.ft", "Sq.ft", "MM"] as const;
-export type HardwareUnit = (typeof hardwareUnits)[number];
-
+// they're priced differently). Category, Brand and Unit are all single-value
+// references into Material Library (Category was originally spec'd as
+// multi-value, but the business confirmed a hardware item only ever needs
+// one category in practice).
 export type HardwarePriceItem = {
   id: string;
   articleNo: string;
-  categories: string[];
-  brand: string;
-  unit: HardwareUnit;
+  categoryId: string;
+  brandId: string;
+  unitId: string;
   description: string;
   mrp: number;
   discountPct: number;
@@ -98,36 +70,36 @@ function hardwareItem(input: Omit<HardwarePriceItem, "id" | "createdAt">): Hardw
 export const mockHardwarePriceItems: HardwarePriceItem[] = [
   hardwareItem({
     articleNo: "BLM-CLIP-110",
-    categories: ["Hinges"],
-    brand: "Blum",
-    unit: "Pcs",
+    categoryId: findMaterialId("category", "Hinges"),
+    brandId: findMaterialId("brand", "Blum"),
+    unitId: findMaterialId("unit", "Pcs"),
     description: "Clip Top Soft-Close Hinge, 110°, full overlay",
     mrp: 420,
     discountPct: 15,
   }),
   hardwareItem({
     articleNo: "HTC-TR-450",
-    categories: ["Tandem Runner"],
-    brand: "Hettich",
-    unit: "Set",
+    categoryId: findMaterialId("category", "Tandem Runner"),
+    brandId: findMaterialId("brand", "Hettich"),
+    unitId: findMaterialId("unit", "Set"),
     description: "Tandem Box Runner, 450mm, soft-close",
     mrp: 1850,
     discountPct: 20,
   }),
   hardwareItem({
     articleNo: "EBC-LFT-01",
-    categories: ["Lift Up", "Kitchen Accessories"],
-    brand: "Ebco",
-    unit: "Set",
+    categoryId: findMaterialId("category", "Lift Up"),
+    brandId: findMaterialId("brand", "Ebco"),
+    unitId: findMaterialId("unit", "Set"),
     description: "Lift-Up System for wall cabinets, gas-strut assisted",
     mrp: 3200,
     discountPct: 10,
   }),
   hardwareItem({
     articleNo: "TFN-HDL-PRF",
-    categories: ["Handle"],
-    brand: "The Furn",
-    unit: "Mtr",
+    categoryId: findMaterialId("category", "Handle"),
+    brandId: findMaterialId("brand", "The Furn"),
+    unitId: findMaterialId("unit", "Mtr"),
     description: "Aluminium Profile Handle, brushed finish",
     mrp: 650,
     discountPct: 5,

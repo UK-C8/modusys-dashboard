@@ -6,12 +6,16 @@ export type MaterialCategoryKey =
   | "handle-type"
   | "hinges-type"
   | "client-responsibility"
+  | "product-type"
   // Material Library
   | "furniture-component"
   | "raw-material-type"
   | "internal-colour"
   | "external-colour"
-  | "thickness";
+  | "thickness"
+  | "category"
+  | "brand"
+  | "unit";
 
 export type MaterialCategory = {
   key: MaterialCategoryKey;
@@ -21,9 +25,15 @@ export type MaterialCategory = {
   // simple name-only vocabulary entry (per spec) — everything else just has
   // an optional short description.
   longDescription?: boolean;
+  // Category/Brand are name-only lookups — no description field.
+  noDescription?: boolean;
 };
 
 export const materialCategories: MaterialCategory[] = [
+  // No seed entries yet — added now so it exists as a stable reference key
+  // other areas can start pointing at, populated later once its real values
+  // are known.
+  { key: "product-type", group: "specification", label: "Product Type", noDescription: true },
   { key: "raw-material-description", group: "specification", label: "Raw Material Description", longDescription: true },
   { key: "handle-type", group: "specification", label: "Handle Type" },
   { key: "hinges-type", group: "specification", label: "Hinges Type" },
@@ -33,6 +43,9 @@ export const materialCategories: MaterialCategory[] = [
   { key: "internal-colour", group: "library", label: "Internal Colours and Description" },
   { key: "external-colour", group: "library", label: "External Colours and Description" },
   { key: "thickness", group: "library", label: "Thickness" },
+  { key: "category", group: "library", label: "Category", noDescription: true },
+  { key: "brand", group: "library", label: "Brand", noDescription: true },
+  { key: "unit", group: "library", label: "Unit", noDescription: true },
 ];
 
 export function getMaterialCategory(key: MaterialCategoryKey) {
@@ -109,4 +122,38 @@ export const mockMaterialItems: MaterialItem[] = [
   item("thickness", "16mm"),
   item("thickness", "18mm"),
   item("thickness", "25mm"),
+
+  // Category (Hardware Price List)
+  item("category", "Hinges"),
+  item("category", "Tandem Runner"),
+  item("category", "Lift Up"),
+  item("category", "Kitchen Accessories"),
+  item("category", "Handle"),
+  item("category", "Kitchen Misc H/W"),
+  item("category", "Light"),
+  item("category", "Wardrobe Accessories"),
+  item("category", "Qudro Runner"),
+  item("category", "Accessories"),
+
+  // Brand (Hardware Price List)
+  item("brand", "Blum"),
+  item("brand", "Ebco"),
+  item("brand", "Hettich"),
+  item("brand", "Higold"),
+  item("brand", "Kessebohmer"),
+  item("brand", "Vita"),
+  item("brand", "Nimmi"),
+  item("brand", "Rehau"),
+  item("brand", "Olive"),
+  item("brand", "Astronea"),
+  item("brand", "The Furn"),
+
+  // Unit (Hardware Price List)
+  item("unit", "Set"),
+  item("unit", "Pcs"),
+  item("unit", "Mtr"),
+  item("unit", "Inch"),
+  item("unit", "R.ft"),
+  item("unit", "Sq.ft"),
+  item("unit", "MM"),
 ];

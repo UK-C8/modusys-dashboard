@@ -38,8 +38,6 @@ export function MaterialSpecSection() {
         <p className="text-sm font-body text-grey-400">Define the material vocabulary used across quotes</p>
       </div>
 
-      <CsvImportExportPanel />
-
       <Tabs
         value={subTab}
         onValueChange={(value) => {
@@ -49,10 +47,13 @@ export function MaterialSpecSection() {
           if (first) setActiveCategory(first.key);
         }}
       >
-        <TabsList>
-          <TabsTrigger value="specification">Material Specification</TabsTrigger>
-          <TabsTrigger value="library">Material Library</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <TabsList>
+            <TabsTrigger value="specification">Material Specification</TabsTrigger>
+            <TabsTrigger value="library">Material Library</TabsTrigger>
+          </TabsList>
+          <CsvImportExportPanel />
+        </div>
       </Tabs>
 
       <div className="flex flex-col gap-4 lg:flex-row">

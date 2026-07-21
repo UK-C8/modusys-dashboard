@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { materialSpecStore } from "@/lib/store/material-spec-store";
 import type { MaterialCategory, MaterialItem } from "@/lib/mock/material-spec";
 
 const itemSchema = z.object({
@@ -43,6 +44,7 @@ export function MaterialItemFormDialog({
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting, isValid },
   } = useForm<ItemFormValues>({
     resolver: zodResolver(itemSchema),
@@ -56,6 +58,10 @@ export function MaterialItemFormDialog({
   }, [open, item, reset]);
 
   const submit = (values: ItemFormValues) => {
+    if (materialSpecStore.isNameTaken(category.key, values.name, item?.id)) {
+      setError("name", { message: `This ${category.label.toLowerCase()} name already exists.` });
+      return;
+    }
     onSubmit(values);
     onOpenChange(false);
   };
@@ -77,22 +83,24 @@ export function MaterialItemFormDialog({
             {errors.name && <span className="text-xs font-body text-error">{errors.name.message}</span>}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="mi-description">
-              Description {category.longDescription ? "" : "(optional)"}
-            </Label>
-            {category.longDescription ? (
-              <textarea
-                id="mi-description"
-                rows={3}
-                placeholder="Full spec text — finish, grade, use case"
-                {...register("description")}
-                className="w-full resize-none rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary"
-              />
-            ) : (
-              <Input id="mi-description" placeholder="Short description" {...register("description")} />
-            )}
-          </div>
+          {!category.noDescription && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="mi-description">
+                Description {category.longDescription ? "" : "(optional)"}
+              </Label>
+              {category.longDescription ? (
+                <textarea
+                  id="mi-description"
+                  rows={3}
+                  placeholder="Full spec text — finish, grade, use case"
+                  {...register("description")}
+                  className="w-full resize-none rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary"
+                />
+              ) : (
+                <Input id="mi-description" placeholder="Short description" {...register("description")} />
+              )}
+            </div>
+          )}
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

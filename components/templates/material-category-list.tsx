@@ -83,7 +83,7 @@ export function MaterialCategoryList({ category }: { category: MaterialCategory 
                 <th className="px-4 py-2.5 text-xs font-body font-medium uppercase tracking-wide text-grey-500">
                   {category.longDescription ? "Value" : "Name"}
                 </th>
-                {!category.longDescription && (
+                {!category.longDescription && !category.noDescription && (
                   <th className="px-4 py-2.5 text-xs font-body font-medium uppercase tracking-wide text-grey-500">
                     Description
                   </th>
@@ -102,7 +102,7 @@ export function MaterialCategoryList({ category }: { category: MaterialCategory 
                       <p className="mt-0.5 text-xs font-body text-grey-400">{i.description}</p>
                     )}
                   </td>
-                  {!category.longDescription && (
+                  {!category.longDescription && !category.noDescription && (
                     <td className="px-4 py-3 text-sm font-body text-grey-500">{i.description || "—"}</td>
                   )}
                   <td className="px-4 py-3">

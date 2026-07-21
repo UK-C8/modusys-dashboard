@@ -81,6 +81,12 @@ export const materialSpecStore = {
     persist();
     emit();
   },
+  isNameTaken(category: MaterialCategoryKey, name: string, excludeId?: string) {
+    ensureHydrated();
+    return items.some(
+      (i) => i.category === category && i.id !== excludeId && !i.deleted && i.name.toLowerCase() === name.trim().toLowerCase()
+    );
+  },
 };
 
 export function useMaterialItems(category: MaterialCategoryKey) {

@@ -60,41 +60,40 @@ export function FurniturePriceTable() {
           <h3 className="font-heading text-base font-semibold text-grey-900">Furniture Price List</h3>
           <p className="text-xs font-body text-grey-400">{items.length} combinations priced</p>
         </div>
-        <Button size="sm" onClick={() => setAddOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add Price
-        </Button>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          value={filterDimension}
-          onChange={(e) => {
-            setFilterDimension(e.target.value as typeof filterDimension);
-            setFilterValue("");
-          }}
-          className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
-        >
-          <option value="all">Filter by...</option>
-          <option value="thicknessId">Thickness</option>
-          <option value="rawMaterialTypeId">Raw Material Type</option>
-          <option value="internalColourId">Internal Colour</option>
-          <option value="externalColourId">External Colour</option>
-        </select>
-        {filterDimension !== "all" && (
+        <div className="flex flex-wrap items-center gap-2">
           <select
-            value={filterValue}
-            onChange={(e) => setFilterValue(e.target.value)}
+            value={filterDimension}
+            onChange={(e) => {
+              setFilterDimension(e.target.value as typeof filterDimension);
+              setFilterValue("");
+            }}
             className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
           >
-            <option value="">All values</option>
-            {filterOptions.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}
-              </option>
-            ))}
+            <option value="all">Filter by...</option>
+            <option value="thicknessId">Thickness</option>
+            <option value="rawMaterialTypeId">Raw Material Type</option>
+            <option value="internalColourId">Internal Colour</option>
+            <option value="externalColourId">External Colour</option>
           </select>
-        )}
+          {filterDimension !== "all" && (
+            <select
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+              className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
+            >
+              <option value="">All values</option>
+              {filterOptions.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <Button size="sm" onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add Price
+          </Button>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -108,7 +107,7 @@ export function FurniturePriceTable() {
           <table className="w-full text-left">
             <thead className="bg-light-600">
               <tr>
-                {["Thickness", "Raw Material Type", "Internal Colours and Description", "External Colours and Description", "Rate"].map((h) => (
+                {["Thickness", "Raw Material Type", "Internal Colours and Description", "External Colours and Description", "Rate/sq.ft"].map((h) => (
                   <th key={h} className="whitespace-nowrap px-4 py-2.5 text-xs font-body font-medium uppercase tracking-wide text-grey-500">
                     {h}
                   </th>
@@ -119,11 +118,11 @@ export function FurniturePriceTable() {
             <tbody>
               {filtered.map((i) => (
                 <tr key={i.id} className="border-t border-grey-100">
-                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-900">{materialName(i.thicknessId)}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body font-medium text-grey-900">{materialName(i.thicknessId)}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-900">{materialName(i.rawMaterialTypeId)}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{materialName(i.internalColourId)}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{materialName(i.externalColourId)}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body font-semibold text-grey-900">₹{i.rate}/sq ft</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body font-semibold text-grey-900">{i.rate.toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       {canEdit && (

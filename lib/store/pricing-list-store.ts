@@ -145,19 +145,17 @@ export const pricingListStore = {
   },
   // Bulk actions — pricing revisions at 200+ SKU catalog scale need this,
   // not just one-row-at-a-time editing.
-  bulkAddCategory(ids: string[], category: string) {
+  bulkSetCategory(ids: string[], categoryId: string) {
     ensureHydrated();
     const idSet = new Set(ids);
-    hardwareItems = hardwareItems.map((i) =>
-      idSet.has(i.id) && !i.categories.includes(category) ? { ...i, categories: [...i.categories, category] } : i
-    );
+    hardwareItems = hardwareItems.map((i) => (idSet.has(i.id) ? { ...i, categoryId } : i));
     persist();
     emit();
   },
-  bulkSetBrand(ids: string[], brand: string) {
+  bulkSetBrand(ids: string[], brandId: string) {
     ensureHydrated();
     const idSet = new Set(ids);
-    hardwareItems = hardwareItems.map((i) => (idSet.has(i.id) ? { ...i, brand } : i));
+    hardwareItems = hardwareItems.map((i) => (idSet.has(i.id) ? { ...i, brandId } : i));
     persist();
     emit();
   },

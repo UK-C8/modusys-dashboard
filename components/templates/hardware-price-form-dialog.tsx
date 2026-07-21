@@ -12,22 +12,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ChipInput } from "@/components/templates/chip-input";
+import { MaterialReferenceSelect } from "@/components/templates/material-reference-select";
 import { pricingListStore } from "@/lib/store/pricing-list-store";
-import { hardwareCategories, hardwareBrands, hardwareUnits, rateAfterDiscount, type HardwarePriceItem, type HardwareUnit } from "@/lib/mock/pricing-list";
+import { rateAfterDiscount, type HardwarePriceItem } from "@/lib/mock/pricing-list";
 
 type FormValues = {
   articleNo: string;
-  categories: string[];
-  brand: string;
-  unit: HardwareUnit;
+  categoryId: string;
+  brandId: string;
+  unitId: string;
   description: string;
   mrp: number;
   discountPct: number;
 };
 
 function emptyValues(): FormValues {
-  return { articleNo: "", categories: [], brand: "", unit: "Pcs", description: "", mrp: 0, discountPct: 0 };
+  return { articleNo: "", categoryId: "", brandId: "", unitId: "", description: "", mrp: 0, discountPct: 0 };
 }
 
 export function HardwarePriceFormDialog({
@@ -50,13 +50,26 @@ export function HardwarePriceFormDialog({
     if (!open) return;
     setValues(
       item
-        ? { articleNo: item.articleNo, categories: item.categories, brand: item.brand, unit: item.unit, description: item.description, mrp: item.mrp, discountPct: item.discountPct }
+        ? {
+            articleNo: item.articleNo,
+            categoryId: item.categoryId ?? "",
+            brandId: item.brandId ?? "",
+            unitId: item.unitId ?? "",
+            description: item.description,
+            mrp: item.mrp,
+            discountPct: item.discountPct,
+          }
         : emptyValues()
     );
     setArticleNoError(null);
   }, [open, item]);
 
-  const complete = values.articleNo.trim().length > 0 && values.brand.trim().length > 0 && values.mrp > 0;
+  const complete =
+    values.articleNo.trim().length > 0 &&
+    values.categoryId.length > 0 &&
+    values.brandId.length > 0 &&
+    values.unitId.length > 0 &&
+    values.mrp > 0;
 
   const submit = () => {
     if (pricingListStore.isArticleNoTaken(values.articleNo, item?.id)) {
@@ -91,45 +104,22 @@ export function HardwarePriceFormDialog({
             {articleNoError && <span className="text-xs font-body text-error">{articleNoError}</span>}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label>Category</Label>
-            <ChipInput
-              values={values.categories}
-              onChange={(categories) => setValues((v) => ({ ...v, categories }))}
-              options={hardwareCategories}
-              placeholder="Add category"
-            />
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="hp-brand">Brand *</Label>
-              <Input
-                id="hp-brand"
-                list="hardware-brand-options"
-                value={values.brand}
-                onChange={(e) => setValues((v) => ({ ...v, brand: e.target.value }))}
+              <Label>Category *</Label>
+              <MaterialReferenceSelect
+                category="category"
+                value={values.categoryId}
+                onChange={(id) => setValues((v) => ({ ...v, categoryId: id }))}
               />
-              <datalist id="hardware-brand-options">
-                {hardwareBrands.map((b) => (
-                  <option key={b} value={b} />
-                ))}
-              </datalist>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="hp-unit">Unit</Label>
-              <select
-                id="hp-unit"
-                value={values.unit}
-                onChange={(e) => setValues((v) => ({ ...v, unit: e.target.value as HardwareUnit }))}
-                className="w-full rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary"
-              >
-                {hardwareUnits.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
+              <Label>Brand *</Label>
+              <MaterialReferenceSelect
+                category="brand"
+                value={values.brandId}
+                onChange={(id) => setValues((v) => ({ ...v, brandId: id }))}
+              />
             </div>
           </div>
 
@@ -141,6 +131,15 @@ export function HardwarePriceFormDialog({
               value={values.description}
               onChange={(e) => setValues((v) => ({ ...v, description: e.target.value }))}
               className="w-full resize-none rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Unit *</Label>
+            <MaterialReferenceSelect
+              category="unit"
+              value={values.unitId}
+              onChange={(id) => setValues((v) => ({ ...v, unitId: id }))}
             />
           </div>
 

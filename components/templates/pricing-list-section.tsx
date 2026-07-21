@@ -27,18 +27,19 @@ export function PricingListSection() {
       </div>
 
       <Tabs value={subTab} onValueChange={(value) => setSubTab(String(value))}>
-        <TabsList>
-          <TabsTrigger value="furniture">Furniture Price List</TabsTrigger>
-          <TabsTrigger value="hardware">Hardware Price List</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <TabsList>
+            <TabsTrigger value="furniture">Furniture Price List</TabsTrigger>
+            <TabsTrigger value="hardware">Hardware Price List</TabsTrigger>
+          </TabsList>
+          <SimpleCsvPanel label={subTab === "furniture" ? "Furniture Price List" : "Hardware Price List"} />
+        </div>
 
-        <TabsContent value="furniture" className="flex flex-col gap-6 pt-6">
-          <SimpleCsvPanel label="Furniture Price List" />
+        <TabsContent value="furniture" className="pt-6">
           <FurniturePriceTable />
         </TabsContent>
 
-        <TabsContent value="hardware" className="flex flex-col gap-6 pt-6">
-          <SimpleCsvPanel label="Hardware Price List" />
+        <TabsContent value="hardware" className="pt-6">
           <HardwarePriceTable />
         </TabsContent>
       </Tabs>

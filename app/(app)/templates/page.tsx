@@ -7,13 +7,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { MaterialSpecSection } from "@/components/templates/material-spec-section";
 import { PricingListSection } from "@/components/templates/pricing-list-section";
+import { CabinetTypeSection } from "@/components/templates/cabinet-type-section";
+import { UnitTypeSection } from "@/components/templates/unit-type-section";
 
 const topTabs = [
+  { value: "material-spec", label: "Material Spec" },
   { value: "pricing-list", label: "Pricing List" },
   { value: "unit-type", label: "Unit Type" },
   { value: "cabinet-type", label: "Cabinet Type" },
   { value: "quote-example", label: "Quote Example" },
-  { value: "material-spec", label: "Material Spec" },
 ];
 
 function TemplatesPageContent() {
@@ -53,6 +55,10 @@ function TemplatesPageContent() {
               <MaterialSpecSection />
             ) : t.value === "pricing-list" ? (
               <PricingListSection />
+            ) : t.value === "cabinet-type" ? (
+              <CabinetTypeSection />
+            ) : t.value === "unit-type" ? (
+              <UnitTypeSection />
             ) : (
               <EmptyState icon={Construction} message={`${t.label} is coming in a later phase.`} />
             )}

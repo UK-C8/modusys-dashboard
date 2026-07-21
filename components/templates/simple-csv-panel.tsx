@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { Download, Upload, FileDown, Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { toastStore } from "@/lib/store/toast-store";
 
@@ -22,36 +21,47 @@ export function SimpleCsvPanel({ label }: { label: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-grey-100 bg-card p-3">
-      <Button variant="outline" size="sm" onClick={() => toastStore.show(`Downloaded CSV template for ${label}`)}>
-        <FileDown className="h-4 w-4" />
-        Template
-      </Button>
-      <Button variant="outline" size="sm" onClick={() => toastStore.show(`Exported ${label} to CSV`)}>
-        <Download className="h-4 w-4" />
-        Export Data
-      </Button>
+    <div className="flex shrink-0 items-center gap-1">
+      <select
+        aria-label="Import Mode"
+        value={mode}
+        onChange={(e) => setMode(e.target.value as ImportMode)}
+        className="rounded-lg border border-grey-100 bg-card px-2 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
+      >
+        <option value="upsert">Upsert</option>
+        <option value="insert-only">Insert Only</option>
+        <option value="update-only">Update Only</option>
+      </select>
+      <Tooltip>
+        <TooltipTrigger className="flex items-center text-grey-400 hover:text-grey-600">
+          <Info className="h-4 w-4" />
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">{importModeHelp[mode]}</TooltipContent>
+      </Tooltip>
 
       <div className="mx-1 h-6 w-px bg-grey-100" />
 
-      <div className="flex items-center gap-1">
-        <select
-          aria-label="Import Mode"
-          value={mode}
-          onChange={(e) => setMode(e.target.value as ImportMode)}
-          className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
+      <Tooltip>
+        <TooltipTrigger
+          aria-label="Download CSV template"
+          onClick={() => toastStore.show(`Downloaded CSV template for ${label}`)}
+          className="rounded-lg border border-grey-100 p-1.5 text-grey-600 transition-colors hover:bg-light-600 hover:text-primary"
         >
-          <option value="upsert">Upsert</option>
-          <option value="insert-only">Insert Only</option>
-          <option value="update-only">Update Only</option>
-        </select>
-        <Tooltip>
-          <TooltipTrigger className="flex items-center text-grey-400 hover:text-grey-600">
-            <Info className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs">{importModeHelp[mode]}</TooltipContent>
-        </Tooltip>
-      </div>
+          <FileDown className="h-4 w-4" />
+        </TooltipTrigger>
+        <TooltipContent>Download template</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger
+          aria-label="Export data"
+          onClick={() => toastStore.show(`Exported ${label} to CSV`)}
+          className="rounded-lg border border-grey-100 p-1.5 text-grey-600 transition-colors hover:bg-light-600 hover:text-primary"
+        >
+          <Download className="h-4 w-4" />
+        </TooltipTrigger>
+        <TooltipContent>Export data</TooltipContent>
+      </Tooltip>
 
       <input
         ref={fileInputRef}
@@ -65,10 +75,16 @@ export function SimpleCsvPanel({ label }: { label: string }) {
           e.target.value = "";
         }}
       />
-      <Button size="sm" className="ml-auto" onClick={() => fileInputRef.current?.click()}>
-        <Upload className="h-4 w-4" />
-        Import CSV
-      </Button>
+      <Tooltip>
+        <TooltipTrigger
+          aria-label="Import CSV"
+          onClick={() => fileInputRef.current?.click()}
+          className="rounded-lg bg-primary p-1.5 text-primary-foreground transition-colors hover:bg-primary/80"
+        >
+          <Upload className="h-4 w-4" />
+        </TooltipTrigger>
+        <TooltipContent>Import CSV</TooltipContent>
+      </Tooltip>
     </div>
   );
 }

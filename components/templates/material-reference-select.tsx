@@ -36,14 +36,14 @@ export function MaterialReferenceSelect({
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger className="flex w-full items-center justify-between rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary">
+        <PopoverTrigger className="flex w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary">
           {selected ? (
-            <span className="truncate">
+            <span className="min-w-0 truncate">
               {selected.name}
               {selected.description && <span className="text-grey-400"> — {selected.description}</span>}
             </span>
           ) : (
-            <span className="text-grey-400">Select {meta.label.toLowerCase()}</span>
+            <span className="min-w-0 truncate text-grey-400">Select {meta.label.toLowerCase()}</span>
           )}
           <ChevronDown className="h-3.5 w-3.5 shrink-0 text-grey-400" />
         </PopoverTrigger>
