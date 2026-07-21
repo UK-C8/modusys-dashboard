@@ -32,23 +32,44 @@ export function CsvImportExportPanel() {
         <p className="text-xs font-body text-grey-400">Bulk-manage one category at a time via CSV.</p>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="csv-category">Category</Label>
-        <select
-          id="csv-category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value as MaterialCategoryKey)}
-          className="w-full rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary sm:max-w-xs"
-        >
-          {materialCategories.map((c) => (
-            <option key={c.key} value={c.key}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="csv-category">Category</Label>
+          <select
+            id="csv-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as MaterialCategoryKey)}
+            className="w-full rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary"
+          >
+            {materialCategories.map((c) => (
+              <option key={c.key} value={c.key}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="csv-mode">Import Mode</Label>
+          <select
+            id="csv-mode"
+            value={mode}
+            onChange={(e) => setMode(e.target.value as ImportMode)}
+            className="w-full rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary"
+          >
+            <option value="upsert">Upsert</option>
+            <option value="insert-only">Insert Only</option>
+            <option value="update-only">Update Only</option>
+          </select>
+        </div>
+
+        <p className="flex items-start gap-1.5 text-xs font-body text-grey-400 sm:col-start-2 sm:row-start-2">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          {importModeHelp[mode]}
+        </p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2 border-t border-grey-100 pt-4">
         <Button
           variant="outline"
           size="sm"
@@ -65,43 +86,25 @@ export function CsvImportExportPanel() {
           <Download className="h-4 w-4" />
           Export Data
         </Button>
-      </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="csv-mode">Import Mode</Label>
-        <select
-          id="csv-mode"
-          value={mode}
-          onChange={(e) => setMode(e.target.value as ImportMode)}
-          className="w-full rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary sm:max-w-xs"
-        >
-          <option value="upsert">Upsert</option>
-          <option value="insert-only">Insert Only</option>
-          <option value="update-only">Update Only</option>
-        </select>
-        <p className="flex items-start gap-1.5 text-xs font-body text-grey-400">
-          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          {importModeHelp[mode]}
-        </p>
-      </div>
-
-      <div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            toastStore.show(`Imported "${file.name}" into ${categoryLabel} (${mode})`);
-            e.target.value = "";
-          }}
-        />
-        <Button size="sm" onClick={() => fileInputRef.current?.click()}>
-          <Upload className="h-4 w-4" />
-          Import CSV
-        </Button>
+        <div className="ml-auto">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              toastStore.show(`Imported "${file.name}" into ${categoryLabel} (${mode})`);
+              e.target.value = "";
+            }}
+          />
+          <Button size="sm" onClick={() => fileInputRef.current?.click()}>
+            <Upload className="h-4 w-4" />
+            Import CSV
+          </Button>
+        </div>
       </div>
     </div>
   );
