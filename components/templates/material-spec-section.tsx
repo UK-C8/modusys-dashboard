@@ -55,7 +55,7 @@ export function MaterialSpecSection() {
       </Tabs>
 
       <div className="flex flex-col gap-4 lg:flex-row">
-        <div className="flex shrink-0 flex-row gap-1 overflow-x-auto lg:w-56 lg:flex-col lg:overflow-visible">
+        <div className="flex shrink-0 flex-row gap-1 overflow-x-auto lg:w-64 lg:flex-col lg:overflow-visible">
           {groupCategories.map((c) => (
             <button
               key={c.key}
@@ -67,7 +67,7 @@ export function MaterialSpecSection() {
                 router.replace(`${pathname}?${params.toString()}`, { scroll: false });
               }}
               className={cn(
-                "whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-body font-medium transition-colors",
+                "w-full shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-body font-medium transition-colors lg:whitespace-normal",
                 selected.key === c.key ? "bg-primary-transparent text-primary" : "text-grey-600 hover:bg-light-600"
               )}
             >
