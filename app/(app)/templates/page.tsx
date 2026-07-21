@@ -6,6 +6,7 @@ import { Construction } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { MaterialSpecSection } from "@/components/templates/material-spec-section";
+import { PricingListSection } from "@/components/templates/pricing-list-section";
 
 const topTabs = [
   { value: "pricing-list", label: "Pricing List" },
@@ -47,6 +48,8 @@ function TemplatesPageContent() {
           <TabsContent key={t.value} value={t.value} className="pt-6">
             {t.value === "material-spec" ? (
               <MaterialSpecSection />
+            ) : t.value === "pricing-list" ? (
+              <PricingListSection />
             ) : (
               <EmptyState icon={Construction} message={`${t.label} is coming in a later phase.`} />
             )}

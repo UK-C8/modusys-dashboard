@@ -292,6 +292,30 @@ Tasks:
 
 ---
 
+## Phase 7b — Templates: Pricing List (Furniture + Hardware)
+
+**Goal:** the second real Templates sub-tab, depends on Phase 7c (Material Spec) already existing — Furniture Price List's Add modal cannot function without Material Library's Thickness/Raw Material Type/Colour data, so despite the "b" before "c" numbering (kept per the original naming), Material Spec was built first and this was sequenced second in actual build order.
+
+Tasks:
+1. Pricing List top-level tab (URL-persisted sub-tabs Furniture | Hardware via `?view=`, same pattern as Material Spec), each sub-tab with its own compact CSV panel (`SimpleCsvPanel` — same toolbar as Material Spec's, minus the category selector since each sub-tab is already scoped to one table).
+2. **Furniture Price List**: every row is a Thickness + Raw Material Type + Internal Colour + External Colour + Rate (₹ per sq ft, confirmed with business) combination. The Add/Edit modal's four material fields (`MaterialReferenceSelect`) are searchable dropdowns sourced live from Material Library — never free text — each with an inline "+ Add new" escape hatch that opens Material Spec's own Add modal without leaving this dialog, so pricing entry is never blocked on Material Library being incomplete yet.
+3. Duplicate-combination guard: attempting to add an exact Thickness+Type+Internal+External combo that already exists shows a warning with a direct "Edit existing entry" button instead of silently creating a second row for the same combination.
+4. Filterable by any of the four dimensions (e.g. "all rates for 18mm BWP Ply").
+5. **Hardware Price List**: Article No. (unique, inline validation), Category as a genuine multi-value chip field (`ChipInput` — pick from the seeded catalog list or type a new one), Brand as a single value per business decision (Article No. + Brand together are the real unique key — a part sold under two brands gets two separate rows, not one multi-brand row), Unit dropdown (Set/Pcs/Mtr/Inch/R.ft/Sq.ft/MM), MRP + Discount % with **Rate After Discount computed live and rendered read-only** (never a directly-editable field, removing the manual-math error the old flat Rate column allowed).
+6. Category and Brand filters (category filter matches if present anywhere in a row's chip list). Bulk actions at 200+ SKU scale: multi-select rows, bulk-add a category, bulk-set a brand, bulk ±2% discount adjustment.
+
+**Explicitly deferred (per business answers):** quantity-tiered rates (one flat rate per Furniture combination, not tiers).
+
+**Backend TODO (Phase B3+):** `FurniturePriceListItem` as FKs into the four Material Library tables with a composite unique constraint (not text copies) to enforce the duplicate-combination rule server-side. `HardwarePriceListItem` needs a many-to-many join table for Category (Brand stays single-value/FK). `rateAfterDiscount` computed on read or as a generated column — frontend must never accept a direct write to it. Enforce Edit = Admin+, permanent Delete = Super Admin only server-side, same as Material Spec.
+
+**Definition of Done:**
+- The Furniture Add modal cannot be completed with free-typed material values — only existing or newly-created Material Library entries.
+- Adding a duplicate Furniture combination is blocked with a working link to the existing row instead of creating a silent duplicate.
+- Hardware's Rate After Discount field updates live as MRP/Discount % change and cannot be typed into directly.
+- Bulk discount adjustment on a multi-row selection updates every selected row's Rate After Discount correctly.
+
+---
+
 ## Backend Phases (run in parallel with or slightly ahead of the frontend phases above)
 
 ### Phase B0 — Backend Setup

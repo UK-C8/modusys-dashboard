@@ -1,0 +1,270 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Plus, Pencil, Trash2, PackageSearch } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/shared/empty-state";
+import { HardwarePriceFormDialog } from "@/components/templates/hardware-price-form-dialog";
+import { DeletePriceItemDialog } from "@/components/templates/delete-price-item-dialog";
+import { useHardwarePriceItems, pricingListStore } from "@/lib/store/pricing-list-store";
+import { toastStore } from "@/lib/store/toast-store";
+import { getCurrentUser } from "@/lib/session";
+import { hardwareCategories, hardwareBrands, rateAfterDiscount, type HardwarePriceItem } from "@/lib/mock/pricing-list";
+
+export function HardwarePriceTable() {
+  const currentUser = getCurrentUser();
+  const canEdit = currentUser.role === "super-admin" || currentUser.role === "admin";
+  const canDelete = currentUser.role === "super-admin";
+
+  const items = useHardwarePriceItems();
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [brandFilter, setBrandFilter] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [addOpen, setAddOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<HardwarePriceItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<HardwarePriceItem | null>(null);
+
+  const filtered = useMemo(
+    () =>
+      items.filter(
+        (i) =>
+          (!categoryFilter || i.categories.includes(categoryFilter)) &&
+          (!brandFilter || i.brand === brandFilter)
+      ),
+    [items, categoryFilter, brandFilter]
+  );
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    const deleted = deleteTarget;
+    pricingListStore.deleteHardwareItem(deleted.id);
+    setDeleteTarget(null);
+    toastStore.show(`"${deleted.articleNo}" deleted`, "success", {
+      durationMs: 10000,
+      action: { label: "Undo", onClick: () => pricingListStore.restoreHardwareItem(deleted.id) },
+    });
+  };
+
+  const selectedIds = [...selected];
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="font-heading text-base font-semibold text-grey-900">Hardware Price List</h3>
+          <p className="text-xs font-body text-grey-400">{items.length} SKUs</p>
+        </div>
+        <Button size="sm" onClick={() => setAddOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Add Hardware
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
+        >
+          <option value="">All categories</option>
+          {hardwareCategories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <select
+          value={brandFilter}
+          onChange={(e) => setBrandFilter(e.target.value)}
+          className="rounded-lg border border-grey-100 bg-card px-3 py-1.5 text-sm font-body text-grey-900 outline-none focus:border-primary"
+        >
+          <option value="">All brands</option>
+          {hardwareBrands.map((b) => (
+            <option key={b} value={b}>
+              {b}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {canEdit && selectedIds.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-primary-transparent px-3 py-2 text-sm font-body text-primary">
+          <span className="font-medium">{selectedIds.length} selected</span>
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              if (e.target.value) pricingListStore.bulkAddCategory(selectedIds, e.target.value);
+              e.target.value = "";
+            }}
+            className="rounded-md border border-grey-100 bg-card px-2 py-1 text-xs font-body text-grey-700 outline-none"
+          >
+            <option value="" disabled>
+              + Add category to selected
+            </option>
+            {hardwareCategories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              if (e.target.value) pricingListStore.bulkSetBrand(selectedIds, e.target.value);
+              e.target.value = "";
+            }}
+            className="rounded-md border border-grey-100 bg-card px-2 py-1 text-xs font-body text-grey-700 outline-none"
+          >
+            <option value="" disabled>
+              Set brand for selected
+            </option>
+            {hardwareBrands.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => pricingListStore.bulkAdjustDiscount(selectedIds, -2)}
+            className="rounded-md border border-grey-100 bg-card px-2 py-1 text-xs font-body text-grey-700 hover:bg-light-600"
+          >
+            Discount −2%
+          </button>
+          <button
+            type="button"
+            onClick={() => pricingListStore.bulkAdjustDiscount(selectedIds, 2)}
+            className="rounded-md border border-grey-100 bg-card px-2 py-1 text-xs font-body text-grey-700 hover:bg-light-600"
+          >
+            Discount +2%
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-xs font-body underline hover:no-underline"
+          >
+            Clear selection
+          </button>
+        </div>
+      )}
+
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={PackageSearch}
+          message={items.length === 0 ? "No hardware pricing entries yet." : "No entries match this filter."}
+          cta={items.length === 0 ? { label: "Add Hardware", onClick: () => setAddOpen(true) } : undefined}
+        />
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-grey-100">
+          <table className="w-full text-left">
+            <thead className="bg-light-600">
+              <tr>
+                {canEdit && <th className="w-8 px-4 py-2.5" />}
+                {["Article No.", "Category", "Brand", "Unit", "Description", "MRP", "Discount %", "Rate After Discount"].map((h) => (
+                  <th key={h} className="whitespace-nowrap px-4 py-2.5 text-xs font-body font-medium uppercase tracking-wide text-grey-500">
+                    {h}
+                  </th>
+                ))}
+                <th className="px-4 py-2.5 text-right text-xs font-body font-medium uppercase tracking-wide text-grey-500">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((i) => (
+                <tr key={i.id} className="border-t border-grey-100">
+                  {canEdit && (
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(i.id)}
+                        onChange={() => toggleSelect(i.id)}
+                        className="h-4 w-4 accent-primary"
+                      />
+                    </td>
+                  )}
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body font-medium text-grey-900">{i.articleNo}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {i.categories.map((c) => (
+                        <span key={c} className="whitespace-nowrap rounded-full bg-grey-transparent px-2 py-0.5 text-xs font-body text-grey-600">
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{i.brand}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{i.unit}</td>
+                  <td className="max-w-xs px-4 py-3 text-sm font-body text-grey-500">{i.description || "—"}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">₹{i.mrp}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body text-grey-700">{i.discountPct}%</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-body font-semibold text-grey-900">
+                    ₹{rateAfterDiscount(i).toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      {canEdit && (
+                        <Tooltip>
+                          <TooltipTrigger
+                            aria-label="Edit"
+                            onClick={() => setEditTarget(i)}
+                            className="rounded-md p-1.5 text-grey-400 transition-colors hover:bg-light-600 hover:text-primary"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </TooltipTrigger>
+                          <TooltipContent>Edit</TooltipContent>
+                        </Tooltip>
+                      )}
+                      {canDelete && (
+                        <Tooltip>
+                          <TooltipTrigger
+                            aria-label="Delete"
+                            onClick={() => setDeleteTarget(i)}
+                            className="rounded-md p-1.5 text-grey-400 transition-colors hover:bg-light-600 hover:text-error"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </TooltipTrigger>
+                          <TooltipContent>Delete</TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <HardwarePriceFormDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onSubmit={(values) => pricingListStore.createHardwareItem(values)}
+      />
+
+      {editTarget && (
+        <HardwarePriceFormDialog
+          open={!!editTarget}
+          onOpenChange={(open) => !open && setEditTarget(null)}
+          item={editTarget}
+          onSubmit={(values) => pricingListStore.updateHardwareItem(editTarget.id, values)}
+        />
+      )}
+
+      <DeletePriceItemDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={deleteTarget?.articleNo ?? null}
+        onConfirm={handleDelete}
+      />
+    </div>
+  );
+}
