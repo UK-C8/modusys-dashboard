@@ -6,6 +6,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { ArchitectFormDialog } from "@/components/architects/architect-form-dialog";
 import { useArchitects, architectsStore } from "@/lib/store/architects-store";
+import { getCurrentUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
 export function ArchitectPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
@@ -85,7 +86,7 @@ export function ArchitectPicker({ value, onChange }: { value: string; onChange: 
         open={addOpen}
         onOpenChange={setAddOpen}
         onSubmit={(values) => {
-          const created = architectsStore.createArchitect(values);
+          const created = architectsStore.createArchitect({ ...values, createdById: getCurrentUser().id });
           onChange(created.id);
         }}
       />
