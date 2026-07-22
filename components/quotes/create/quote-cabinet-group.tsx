@@ -12,7 +12,7 @@ import { UnitTypeHardwareRow } from "@/components/templates/unit-type-hardware-r
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useFurniturePriceItems, useHardwarePriceItems } from "@/lib/store/pricing-list-store";
 import { useCabinetTypes } from "@/lib/store/cabinet-type-store";
-import { groupTotal, hardwareLineTotal, evaluateFormula, SQMM_PER_SQFT } from "@/lib/quote-pricing";
+import { groupTotal, hardwareLineTotal, evaluateFormula, SQMM_PER_SQFT, resolveLineItemDimensions } from "@/lib/quote-pricing";
 import type { QuoteCabinet } from "@/lib/mock/quote";
 import type { FurnitureLineItem, UnitTypeHardware } from "@/lib/mock/unit-type";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,7 @@ export function FurnitureGroup({
   label: string;
   showComponentName: boolean;
   items: FurnitureLineItem[];
-  unit: { width: number; depth: number; height: number };
+  unit: { width: number; depth: number; height: number; qty: number };
   onChange: (items: FurnitureLineItem[]) => void;
   addLabel: string;
 }) {
@@ -117,7 +117,7 @@ function HardwareGroup({
   onChange,
 }: {
   items: UnitTypeHardware[];
-  unit: { width: number; depth: number; height: number };
+  unit: { width: number; depth: number; height: number; qty: number };
   onChange: (items: UnitTypeHardware[]) => void;
 }) {
   const hardwareItems = useHardwarePriceItems();
@@ -218,7 +218,7 @@ export function QuoteCabinetGroup({
 }: {
   cabinet: QuoteCabinet;
   index: number;
-  unit: { width: number; depth: number; height: number };
+  unit: { width: number; depth: number; height: number; qty: number };
   total: number;
   onChange: (patch: Partial<QuoteCabinet>) => void;
   onRemove: () => void;
@@ -231,10 +231,9 @@ export function QuoteCabinetGroup({
   const runAutoPopulate = () => {
     if (!selectedCabinetType) return;
     onChange({
-      components: selectedCabinetType.components.map((c) => ({
-        ...c,
-        id: `qli-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      })),
+      components: selectedCabinetType.components.map((c) =>
+        resolveLineItemDimensions({ ...c, id: `qli-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }, unit)
+      ),
     });
   };
 

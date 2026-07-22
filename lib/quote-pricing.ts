@@ -22,6 +22,37 @@ export function evaluateFormula(formula: string, vars: { W: number; D: number; H
   }
 }
 
+// Auto Populate bakes the Unit Type's generic formula (e.g. "W-36") into the
+// concrete number for *this* quote's Unit dimensions ("564"), so the admin
+// sees and edits real millimetres, not the template's symbolic formula. Qty
+// gets baked in the same way, multiplied by the Unit's own Qty (e.g. a
+// component templated at qty 2, on a Unit set to Qty 3, becomes qty 6) —
+// so the per-row Qty already reflects how many physical units this quote
+// line represents, and downstream totals never multiply by Unit Qty again.
+export function resolveLineItemDimensions<T extends { widthFormula: string; heightFormula: string; qty: number }>(
+  item: T,
+  unit: { width: number; depth: number; height: number; qty: number }
+): T {
+  const vars = { W: unit.width, D: unit.depth, H: unit.height };
+  return {
+    ...item,
+    widthFormula: String(Math.round(evaluateFormula(item.widthFormula, vars))),
+    heightFormula: String(Math.round(evaluateFormula(item.heightFormula, vars))),
+    qty: item.qty * unit.qty,
+  };
+}
+
+// Same idea for Hardware — qtyFormula (a number or W/D/H formula) gets
+// evaluated and multiplied by the Unit's Qty into one concrete number.
+export function resolveHardwareForUnit(
+  item: UnitTypeHardware,
+  unit: { width: number; depth: number; height: number; qty: number }
+): UnitTypeHardware {
+  const vars = { W: unit.width, D: unit.depth, H: unit.height };
+  const resolvedQty = evaluateFormula(item.qtyFormula, vars) * unit.qty;
+  return { ...item, qtyFormula: String(Math.round(resolvedQty)) };
+}
+
 export function findFurnitureMatch(item: FurnitureLineItem, furnitureItems: FurniturePriceItem[]): FurniturePriceItem | null {
   if (!item.thicknessId || !item.rawMaterialTypeId || !item.internalColourId || !item.externalColourId) return null;
   return (
@@ -86,8 +117,7 @@ export function unitTotal(
   furnitureItems: FurniturePriceItem[],
   hardwareItems: HardwarePriceItem[]
 ): number {
-  const perCabinet = unit.cabinets.reduce((sum, c) => sum + cabinetTotal(c, unit, furnitureItems, hardwareItems), 0);
-  return perCabinet * unit.qty;
+  return unit.cabinets.reduce((sum, c) => sum + cabinetTotal(c, unit, furnitureItems, hardwareItems), 0);
 }
 
 export function quoteRawTotal(

@@ -20,7 +20,7 @@ import { QuoteCabinetGroup } from "@/components/quotes/create/quote-cabinet-grou
 import { useUnitTypes } from "@/lib/store/unit-type-store";
 import { useCabinetTypes } from "@/lib/store/cabinet-type-store";
 import { useFurniturePriceItems, useHardwarePriceItems } from "@/lib/store/pricing-list-store";
-import { cabinetTotal, unitTotal } from "@/lib/quote-pricing";
+import { cabinetTotal, unitTotal, resolveLineItemDimensions, resolveHardwareForUnit } from "@/lib/quote-pricing";
 import type { QuoteUnit, QuoteCabinet } from "@/lib/mock/quote";
 import type { UnitType, FurnitureLineItem, UnitTypeHardware } from "@/lib/mock/unit-type";
 import { cn } from "@/lib/utils";
@@ -32,17 +32,23 @@ function cloneHardware(item: UnitTypeHardware): UnitTypeHardware {
   return { ...item, id: `qhw-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` };
 }
 
-function buildCabinetsFromUnitType(unitType: UnitType, cabinetTypeName: (id: string) => string): QuoteCabinet[] {
+function buildCabinetsFromUnitType(
+  unitType: UnitType,
+  cabinetTypeName: (id: string) => string,
+  unitDims: { width: number; depth: number; height: number; qty: number }
+): QuoteCabinet[] {
+  const resolve = (item: FurnitureLineItem) => resolveLineItemDimensions(cloneLineItem(item), unitDims);
+  const resolveHw = (item: UnitTypeHardware) => resolveHardwareForUnit(cloneHardware(item), unitDims);
   return unitType.cabinetTypeLinks.map((link, index) => ({
     id: `qc-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
     cabinetTypeId: link.cabinetTypeId,
     label: cabinetTypeName(link.cabinetTypeId),
-    components: unitType.components.filter((c) => c.sourceLinkId === link.id).map(cloneLineItem),
+    components: unitType.components.filter((c) => c.sourceLinkId === link.id).map(resolve),
     // Unit Type only groups Components per Cabinet Type link — External
     // Finish and Hardware are unit-wide in the source data, so they attach
     // to the first cabinet slot only, not duplicated across every cabinet.
-    externalFinishes: index === 0 ? unitType.externalFinishes.map(cloneLineItem) : [],
-    hardware: index === 0 ? unitType.hardware.map(cloneHardware) : [],
+    externalFinishes: index === 0 ? unitType.externalFinishes.map(resolve) : [],
+    hardware: index === 0 ? unitType.hardware.map(resolveHw) : [],
     panels: [],
   }));
 }
@@ -152,7 +158,7 @@ export function QuoteUnitCard({
   const runAutoPopulate = (unitType: UnitType) => {
     onChange({
       unitTypeId: unitType.id,
-      cabinets: buildCabinetsFromUnitType(unitType, cabinetTypeName),
+      cabinets: buildCabinetsFromUnitType(unitType, cabinetTypeName, unit),
       autoPopulated: true,
     });
   };
