@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import { AlertCircle } from "lucide-react";
 import { KanbanColumn } from "@/components/crm/pipeline/kanban-column";
 import { KanbanGroup } from "@/components/crm/pipeline/kanban-group";
+import { CustomerCard } from "@/components/crm/pipeline/customer-card";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -44,6 +45,7 @@ export function KanbanBoard({
     nextStage: PipelineStageKey;
     nextStageLabel: string;
   } | null>(null);
+  const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);
 
   const customersByStage = useMemo(() => {
     const map: Record<string, Customer[]> = {};
@@ -71,7 +73,13 @@ export function KanbanBoard({
     );
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const customer = customers.find((c) => c.id === String(event.active.id));
+    setActiveCustomer(customer ?? null);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveCustomer(null);
     const { active, over } = event;
     if (!over) return;
 
@@ -122,7 +130,7 @@ export function KanbanBoard({
         )}
       </div>
 
-      <DndContext id="pipeline-kanban" sensors={sensors} onDragEnd={handleDragEnd}>
+      <DndContext id="pipeline-kanban" sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {filteredStage && (
             <KanbanColumn
@@ -158,6 +166,16 @@ export function KanbanBoard({
             );
           })}
         </div>
+
+        <DragOverlay>
+          {activeCustomer && (
+            <CustomerCard
+              customer={activeCustomer}
+              stageColor={pipelineStages.find((s) => s.key === activeCustomer.stage)?.color ?? "grey"}
+              overlay
+            />
+          )}
+        </DragOverlay>
       </DndContext>
 
       <AlertDialog open={pendingMove !== null} onOpenChange={(open) => !open && setPendingMove(null)}>

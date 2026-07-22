@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Check } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -10,6 +10,9 @@ import {
 import { customerSortOptions, type CustomerSortOption } from "@/lib/mock/pipeline";
 import { cn } from "@/lib/utils";
 
+// Icon-only trigger (tooltip carries the "Sort: X" label) instead of a
+// full-width text button — the old version took up an entire row per
+// column, which added up fast across a whole Kanban board.
 export function SortMenu({
   value,
   onChange,
@@ -24,23 +27,24 @@ export function SortMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
+        aria-label={`Sort: ${activeLabel}`}
+        title={`Sort: ${activeLabel}`}
         className={cn(
-          "flex items-center gap-1.5 rounded-md border border-grey-100 px-2 py-1 text-xs font-body text-grey-500 transition-colors hover:bg-light-600 hover:text-grey-900",
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-grey-100 text-grey-500 transition-colors hover:bg-light-600 hover:text-grey-900",
           className
         )}
       >
-        <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
-        <span className="hidden sm:inline">Sort: </span>
-        <span className="truncate">{activeLabel}</span>
+        <ArrowUpDown className="h-3.5 w-3.5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-44">
         {customerSortOptions.map((option) => (
           <DropdownMenuItem
             key={option.value}
             onClick={() => onChange(option.value)}
-            className="px-2.5 py-2 text-sm"
+            className="flex items-center justify-between gap-2 px-2.5 py-2 text-sm"
           >
             {option.label}
+            {option.value === value && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

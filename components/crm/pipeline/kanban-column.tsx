@@ -29,9 +29,8 @@ export function KanbanColumn({
 
   return (
     <div
-      style={{ backgroundColor: muted ? undefined : colors.light }}
       className={cn(
-        "flex w-72 shrink-0 flex-col gap-3 rounded-lg border border-grey-100 p-3",
+        "flex w-72 shrink-0 flex-col gap-3 rounded-lg border border-grey-100 bg-light-600 p-3",
         muted && "bg-grey-transparent/60",
         className
       )}
@@ -49,13 +48,12 @@ export function KanbanColumn({
           />
           {stage.label}
         </span>
-        <span className="shrink-0 rounded-full bg-card px-2 py-0.5 text-xs font-body font-medium text-grey-500">
-          {customers.length}
+        <span className="flex shrink-0 items-center gap-1.5">
+          <span className="rounded-full bg-card px-2 py-0.5 text-xs font-body font-medium text-grey-500">
+            {customers.length}
+          </span>
+          <SortMenu value={sort} onChange={setSort} />
         </span>
-      </div>
-
-      <div className="flex items-center justify-end gap-2">
-        <SortMenu value={sort} onChange={setSort} />
       </div>
 
       <div
