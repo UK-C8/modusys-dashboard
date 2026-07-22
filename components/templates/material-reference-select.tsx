@@ -66,7 +66,7 @@ export function MaterialReferenceSelect({
                   setQuery("");
                 }}
                 className={cn(
-                  "flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm font-body hover:bg-light-600",
+                  "flex w-full min-w-0 items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm font-body hover:bg-light-600",
                   i.id === value ? "text-primary" : "text-grey-800"
                 )}
               >

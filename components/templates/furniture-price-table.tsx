@@ -8,14 +8,10 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { FurniturePriceFormDialog } from "@/components/templates/furniture-price-form-dialog";
 import { DeletePriceItemDialog } from "@/components/templates/delete-price-item-dialog";
 import { useFurniturePriceItems, pricingListStore } from "@/lib/store/pricing-list-store";
+import { useMaterialItems } from "@/lib/store/material-spec-store";
 import { toastStore } from "@/lib/store/toast-store";
 import { getCurrentUser } from "@/lib/session";
-import { mockMaterialItems } from "@/lib/mock/material-spec";
 import type { FurniturePriceItem } from "@/lib/mock/pricing-list";
-
-function materialName(id: string) {
-  return mockMaterialItems.find((m) => m.id === id)?.name ?? "—";
-}
 
 const dimensionKeys = ["thicknessId", "rawMaterialTypeId", "internalColourId", "externalColourId"] as const;
 
@@ -25,6 +21,14 @@ export function FurniturePriceTable() {
   const canDelete = currentUser.role === "super-admin";
 
   const items = useFurniturePriceItems();
+  // Read names live from the store (not the static seed array) so renames
+  // in Material Spec show up here immediately instead of requiring a reload.
+  const thicknesses = useMaterialItems("thickness");
+  const rawMaterialTypes = useMaterialItems("raw-material-type");
+  const internalColours = useMaterialItems("internal-colour");
+  const externalColours = useMaterialItems("external-colour");
+  const materialName = (id: string) =>
+    [...thicknesses, ...rawMaterialTypes, ...internalColours, ...externalColours].find((m) => m.id === id)?.name ?? "—";
   const [filterDimension, setFilterDimension] = useState<(typeof dimensionKeys)[number] | "all">("all");
   const [filterValue, setFilterValue] = useState("");
   const [addOpen, setAddOpen] = useState(false);
