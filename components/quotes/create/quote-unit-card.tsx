@@ -1,0 +1,293 @@
+"use client";
+
+import { useState } from "react";
+import { Check, ChevronDown, ChevronRight, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { QuoteCabinetGroup } from "@/components/quotes/create/quote-cabinet-group";
+import { useUnitTypes } from "@/lib/store/unit-type-store";
+import { useCabinetTypes } from "@/lib/store/cabinet-type-store";
+import { useFurniturePriceItems, useHardwarePriceItems } from "@/lib/store/pricing-list-store";
+import { cabinetTotal, unitTotal } from "@/lib/quote-pricing";
+import type { QuoteUnit, QuoteCabinet } from "@/lib/mock/quote";
+import type { UnitType, FurnitureLineItem, UnitTypeHardware } from "@/lib/mock/unit-type";
+import { cn } from "@/lib/utils";
+
+function cloneLineItem(item: FurnitureLineItem): FurnitureLineItem {
+  return { ...item, id: `qli-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` };
+}
+function cloneHardware(item: UnitTypeHardware): UnitTypeHardware {
+  return { ...item, id: `qhw-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` };
+}
+
+function buildCabinetsFromUnitType(unitType: UnitType, cabinetTypeName: (id: string) => string): QuoteCabinet[] {
+  return unitType.cabinetTypeLinks.map((link, index) => ({
+    id: `qc-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
+    cabinetTypeId: link.cabinetTypeId,
+    label: cabinetTypeName(link.cabinetTypeId),
+    components: unitType.components.filter((c) => c.sourceLinkId === link.id).map(cloneLineItem),
+    // Unit Type only groups Components per Cabinet Type link — External
+    // Finish and Hardware are unit-wide in the source data, so they attach
+    // to the first cabinet slot only, not duplicated across every cabinet.
+    externalFinishes: index === 0 ? unitType.externalFinishes.map(cloneLineItem) : [],
+    hardware: index === 0 ? unitType.hardware.map(cloneHardware) : [],
+    panels: [],
+  }));
+}
+
+function UnitTypeSelect({ value, onChange }: { value: string | null; onChange: (id: string) => void }) {
+  const unitTypes = useUnitTypes();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const selected = unitTypes.find((u) => u.id === value);
+  const results = unitTypes.filter(
+    (u) => u.name.toLowerCase().includes(query.toLowerCase()) || u.shortCode.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger className="flex w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-grey-100 bg-card px-3 py-2 text-sm font-body text-grey-900 outline-none focus:border-primary">
+        {selected ? (
+          <span className="min-w-0 truncate">
+            {selected.shortCode} — {selected.name}
+          </span>
+        ) : (
+          <span className="min-w-0 truncate text-grey-400">Select Unit Type</span>
+        )}
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-grey-400" />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-80 p-2">
+        <Input autoFocus placeholder="Search unit types" value={query} onChange={(e) => setQuery(e.target.value)} className="mb-2" />
+        <div className="flex max-h-52 flex-col overflow-y-auto">
+          {results.map((u) => (
+            <button
+              key={u.id}
+              type="button"
+              onClick={() => {
+                onChange(u.id);
+                setOpen(false);
+                setQuery("");
+              }}
+              className={cn(
+                "flex w-full min-w-0 items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm font-body hover:bg-light-600",
+                u.id === value ? "text-primary" : "text-grey-800"
+              )}
+            >
+              <span className="min-w-0 truncate">
+                {u.shortCode} — {u.name}
+              </span>
+              {u.id === value && <Check className="h-3.5 w-3.5 shrink-0" />}
+            </button>
+          ))}
+          {results.length === 0 && <span className="px-2 py-1.5 text-sm font-body text-grey-400">No matches</span>}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export function QuoteUnitCard({
+  unit,
+  index,
+  onChange,
+  onRemove,
+}: {
+  unit: QuoteUnit;
+  index: number;
+  onChange: (patch: Partial<QuoteUnit>) => void;
+  onRemove: () => void;
+}) {
+  const unitTypes = useUnitTypes();
+  const cabinetTypes = useCabinetTypes();
+  const furnitureItems = useFurniturePriceItems();
+  const hardwareItems = useHardwarePriceItems();
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [pendingUnitTypeId, setPendingUnitTypeId] = useState<string | null>(null);
+
+  const cabinetTypeName = (id: string) => cabinetTypes.find((c) => c.id === id)?.name ?? "Cabinet";
+  const selectedUnitType = unitTypes.find((u) => u.id === unit.unitTypeId);
+
+  const duplicateCabinet = (cabinetId: string) => {
+    const source = unit.cabinets.find((c) => c.id === cabinetId);
+    if (!source) return;
+    const sourceIndex = unit.cabinets.indexOf(source);
+    const duplicate: QuoteCabinet = {
+      ...source,
+      id: `qc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      components: source.components.map(cloneLineItem),
+      externalFinishes: source.externalFinishes.map(cloneLineItem),
+      hardware: source.hardware.map(cloneHardware),
+      panels: source.panels.map(cloneLineItem),
+    };
+    const cabinets = [...unit.cabinets];
+    cabinets.splice(sourceIndex + 1, 0, duplicate);
+    onChange({ cabinets });
+  };
+
+  const addBlankCabinet = () => {
+    const blank: QuoteCabinet = {
+      id: `qc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      cabinetTypeId: "",
+      label: "",
+      components: [],
+      externalFinishes: [],
+      hardware: [],
+      panels: [],
+    };
+    onChange({ cabinets: [...unit.cabinets, blank] });
+  };
+
+  const runAutoPopulate = (unitType: UnitType) => {
+    onChange({
+      unitTypeId: unitType.id,
+      cabinets: buildCabinetsFromUnitType(unitType, cabinetTypeName),
+      autoPopulated: true,
+    });
+  };
+
+  const handleUnitTypeChange = (id: string) => {
+    if (unit.autoPopulated && unit.unitTypeId !== id) {
+      setPendingUnitTypeId(id);
+    } else {
+      onChange({ unitTypeId: id });
+    }
+  };
+
+  const total = unitTotal(unit, furnitureItems, hardwareItems);
+
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border border-grey-100 bg-light-600 p-4">
+      <div className="flex flex-wrap items-end gap-3">
+        <button
+          type="button"
+          aria-label={unit.collapsed ? "Expand unit" : "Collapse unit"}
+          onClick={() => onChange({ collapsed: !unit.collapsed })}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-grey-100 bg-card text-grey-500 hover:text-grey-800"
+        >
+          {unit.collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-transparent text-sm font-body font-semibold text-primary">
+          {index + 1}
+        </div>
+
+        <div className="flex min-w-56 flex-col gap-1.5">
+          <Label>Unit Type</Label>
+          <UnitTypeSelect value={unit.unitTypeId} onChange={handleUnitTypeChange} />
+        </div>
+
+        <div className="flex w-24 flex-col gap-1.5">
+          <Label htmlFor={`w-${unit.id}`}>W</Label>
+          <Input id={`w-${unit.id}`} type="number" value={unit.width || ""} onChange={(e) => onChange({ width: Number(e.target.value) })} />
+        </div>
+        <div className="flex w-24 flex-col gap-1.5">
+          <Label htmlFor={`d-${unit.id}`}>D</Label>
+          <Input id={`d-${unit.id}`} type="number" value={unit.depth || ""} onChange={(e) => onChange({ depth: Number(e.target.value) })} />
+        </div>
+        <div className="flex w-24 flex-col gap-1.5">
+          <Label htmlFor={`h-${unit.id}`}>H</Label>
+          <Input id={`h-${unit.id}`} type="number" value={unit.height || ""} onChange={(e) => onChange({ height: Number(e.target.value) })} />
+        </div>
+        <div className="flex w-20 flex-col gap-1.5">
+          <Label htmlFor={`qty-${unit.id}`}>Qty</Label>
+          <Input id={`qty-${unit.id}`} type="number" min={1} value={unit.qty || ""} onChange={(e) => onChange({ qty: Number(e.target.value) })} />
+        </div>
+
+        <Button type="button" disabled={!selectedUnitType} onClick={() => selectedUnitType && runAutoPopulate(selectedUnitType)}>
+          <Sparkles className="h-4 w-4" />
+          Auto Populate
+        </Button>
+
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-sm font-body font-semibold text-grey-900">Unit Total: ₹{total.toFixed(2)}</span>
+          <button
+            type="button"
+            aria-label="Remove unit"
+            onClick={() => setDeleteOpen(true)}
+            className="rounded-md p-1.5 text-grey-400 hover:bg-error-transparent hover:text-error"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {!unit.collapsed && (
+        <div className="flex flex-col gap-3 pl-12">
+          {unit.cabinets.map((cabinet, cabinetIndex) => (
+            <QuoteCabinetGroup
+              key={cabinet.id}
+              cabinet={cabinet}
+              index={cabinetIndex + 1}
+              unit={unit}
+              total={cabinetTotal(cabinet, unit, furnitureItems, hardwareItems)}
+              onChange={(patch) => onChange({ cabinets: unit.cabinets.map((c) => (c.id === cabinet.id ? { ...c, ...patch } : c)) })}
+              onRemove={() => onChange({ cabinets: unit.cabinets.filter((c) => c.id !== cabinet.id) })}
+              onDuplicate={() => duplicateCabinet(cabinet.id)}
+            />
+          ))}
+
+          <Button type="button" size="sm" variant="outline" className="w-fit" onClick={addBlankCabinet}>
+            <Plus className="h-3.5 w-3.5" />
+            Add Cabinet
+          </Button>
+        </div>
+      )}
+
+      <AlertDialog open={pendingUnitTypeId !== null} onOpenChange={(open) => !open && setPendingUnitTypeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>This unit was already Auto Populated</AlertDialogTitle>
+            <AlertDialogDescription>
+              You picked a different Unit Type. Replacing runs Auto Populate again and discards any
+              customizations made to the current Cabinets/Components. Keeping just swaps the Unit Type
+              reference without touching what's already here.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel onClick={() => setPendingUnitTypeId(null)}>Cancel</AlertDialogCancel>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (pendingUnitTypeId) onChange({ unitTypeId: pendingUnitTypeId });
+                setPendingUnitTypeId(null);
+              }}
+            >
+              Keep current components
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                const newType = unitTypes.find((u) => u.id === pendingUnitTypeId);
+                if (newType) runAutoPopulate(newType);
+                setPendingUnitTypeId(null);
+              }}
+            >
+              Replace with new defaults
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title={`Delete Unit ${index + 1}?`}
+        description="This removes the unit and every cabinet, component, and hardware line item under it from the quote."
+        onConfirm={onRemove}
+      />
+    </div>
+  );
+}

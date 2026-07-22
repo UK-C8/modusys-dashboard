@@ -24,12 +24,18 @@ export function FurnitureLineItemRow({
   onRemove,
   label,
   showComponentName,
+  totalSqFt,
 }: {
   value: FurnitureLineItem;
   onChange: (patch: Partial<FurnitureLineItem>) => void;
   onRemove: () => void;
   label: string;
   showComponentName: boolean;
+  // Quotes-only — a concrete Unit's W/D/H is needed to evaluate the width/
+  // height formulas into a real area, which Templates (Unit Type/Cabinet
+  // Type builders) never have, so this stays optional and Templates simply
+  // omits it.
+  totalSqFt?: number;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: value.id });
   const [addPriceOpen, setAddPriceOpen] = useState(false);
@@ -183,6 +189,15 @@ export function FurnitureLineItemRow({
             </div>
           )}
         </div>
+
+        {totalSqFt !== undefined && (
+          <div className="flex flex-col gap-1.5">
+            <Label>Total (sq.ft)</Label>
+            <div className="flex h-9 items-center rounded-lg border border-grey-100 bg-light-600 px-3 text-sm font-body font-semibold text-grey-700">
+              {totalSqFt.toFixed(2)}
+            </div>
+          </div>
+        )}
       </div>
 
       {combinationComplete && !match && (
