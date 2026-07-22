@@ -85,6 +85,17 @@ export const usersStore = {
     persist();
     emit();
   },
+  isEmailTaken(email: string, excludeUserId?: string) {
+    ensureHydrated();
+    return users.some((u) => u.id !== excludeUserId && u.email.toLowerCase() === email.trim().toLowerCase());
+  },
+  // TODO: replace with a real PATCH /users/:id call (Phase B3).
+  updateUser(userId: string, fields: { name: string; email: string }) {
+    ensureHydrated();
+    users = users.map((u) => (u.id === userId ? { ...u, name: fields.name, email: fields.email } : u));
+    persist();
+    emit();
+  },
 };
 
 export function useOrgUsers() {
