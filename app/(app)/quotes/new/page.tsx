@@ -50,7 +50,7 @@ export default function CreateQuotePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="sticky top-0 z-20 -mx-6 flex flex-col gap-3 border-b border-grey-100 bg-light px-6 py-4">
+      <div className="sticky -top-4 z-20 -mx-4 flex flex-col gap-3 border-b border-grey-100 bg-light px-4 py-4 lg:-top-6 lg:-mx-6 lg:px-6">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
