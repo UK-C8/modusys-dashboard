@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { MaterialItemFormDialog } from "@/components/templates/material-item-form-dialog";
 import { DeleteMaterialItemDialog } from "@/components/templates/delete-material-item-dialog";
 import { useMaterialItems, materialSpecStore } from "@/lib/store/material-spec-store";
+import { useMaterialDependencies } from "@/lib/hooks/use-material-dependencies";
 import { toastStore } from "@/lib/store/toast-store";
 import { getCurrentUser } from "@/lib/session";
 import type { MaterialCategory, MaterialItem } from "@/lib/mock/material-spec";
@@ -22,6 +23,7 @@ export function MaterialCategoryList({ category }: { category: MaterialCategory 
   const [addOpen, setAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<MaterialItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<MaterialItem | null>(null);
+  const deleteDependencies = useMaterialDependencies(category.key, deleteTarget?.id ?? "");
 
   const filtered = useMemo(
     () =>
@@ -162,6 +164,7 @@ export function MaterialCategoryList({ category }: { category: MaterialCategory 
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         category={category}
         item={deleteTarget}
+        dependencies={deleteDependencies}
         onConfirm={handleDelete}
       />
     </div>

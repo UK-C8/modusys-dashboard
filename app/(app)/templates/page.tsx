@@ -22,7 +22,7 @@ function TemplatesPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tab = searchParams.get("tab") ?? "pricing-list";
+  const tab = searchParams.get("tab") ?? "material-spec";
 
   const setTab = (value: string) => {
     // Sub-tab state (view/category) is per-tab, but the query keys are

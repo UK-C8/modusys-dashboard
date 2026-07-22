@@ -24,11 +24,11 @@ export const navigationItems: NavItem[] = [
   { label: "Purchase Orders", href: "/purchase-orders", icon: ShoppingCart },
   { label: "Customers", href: "/customers", icon: Contact },
   { label: "Architects", href: "/architects", icon: Building2 },
+  { label: "Templates", href: "/templates", icon: LayoutTemplate },
 ];
 
 export const administrationItems: NavItem[] = [
   { label: "User Management", href: "/users", icon: UserCog },
-  { label: "Templates", href: "/templates", icon: LayoutTemplate },
   { label: "Credits", href: "/credits", icon: Wallet },
 ];
 
