@@ -5,6 +5,20 @@ import type { QuoteCabinet, QuoteUnit } from "@/lib/mock/quote";
 
 export const SQMM_PER_SQFT = 92_903.04;
 
+// The Material Specification section's Shutter Finish selection is the
+// single source of truth for every Shutter (External Finish) row's External
+// Colour across every Unit/Cabinet — changing it re-syncs all of them
+// immediately, rather than each Shutter row picking its own colour.
+export function applyShutterFinishToUnits(units: QuoteUnit[], shutterFinishId: string): QuoteUnit[] {
+  return units.map((unit) => ({
+    ...unit,
+    cabinets: unit.cabinets.map((cabinet) => ({
+      ...cabinet,
+      externalFinishes: cabinet.externalFinishes.map((item) => ({ ...item, externalColourId: shutterFinishId })),
+    })),
+  }));
+}
+
 // Formulas only ever reference W/D/H plus +-*/() and numbers (see
 // furniture-line-item-row.tsx placeholders: "(W-95)/2", "H-20") — never
 // arbitrary code, so a whitelist-filtered `Function` eval is safe.

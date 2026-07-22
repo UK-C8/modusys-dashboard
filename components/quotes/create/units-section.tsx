@@ -6,7 +6,15 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { QuoteUnitCard } from "@/components/quotes/create/quote-unit-card";
 import { blankQuoteUnit, type QuoteUnit } from "@/lib/mock/quote";
 
-export function UnitsSection({ units, onChange }: { units: QuoteUnit[]; onChange: (units: QuoteUnit[]) => void }) {
+export function UnitsSection({
+  units,
+  shutterFinishId,
+  onChange,
+}: {
+  units: QuoteUnit[];
+  shutterFinishId: string;
+  onChange: (units: QuoteUnit[]) => void;
+}) {
   const setAllCollapsed = (collapsed: boolean) => onChange(units.map((u) => ({ ...u, collapsed })));
 
   return (
@@ -36,6 +44,7 @@ export function UnitsSection({ units, onChange }: { units: QuoteUnit[]; onChange
               key={unit.id}
               unit={unit}
               index={index}
+              shutterFinishId={shutterFinishId}
               onChange={(patch) => onChange(units.map((u) => (u.id === unit.id ? { ...u, ...patch } : u)))}
               onRemove={() => onChange(units.filter((u) => u.id !== unit.id))}
             />

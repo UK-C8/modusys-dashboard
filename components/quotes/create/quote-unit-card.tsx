@@ -107,11 +107,13 @@ function UnitTypeSelect({ value, onChange }: { value: string | null; onChange: (
 export function QuoteUnitCard({
   unit,
   index,
+  shutterFinishId,
   onChange,
   onRemove,
 }: {
   unit: QuoteUnit;
   index: number;
+  shutterFinishId: string;
   onChange: (patch: Partial<QuoteUnit>) => void;
   onRemove: () => void;
 }) {
@@ -156,9 +158,17 @@ export function QuoteUnitCard({
   };
 
   const runAutoPopulate = (unitType: UnitType) => {
+    const cabinets = buildCabinetsFromUnitType(unitType, cabinetTypeName, unit);
     onChange({
       unitTypeId: unitType.id,
-      cabinets: buildCabinetsFromUnitType(unitType, cabinetTypeName, unit),
+      // New Shutter rows start on the Material Specification's Shutter
+      // Finish, same as the live-sync when that field changes afterward.
+      cabinets: shutterFinishId
+        ? cabinets.map((c) => ({
+            ...c,
+            externalFinishes: c.externalFinishes.map((f) => ({ ...f, externalColourId: shutterFinishId })),
+          }))
+        : cabinets,
       autoPopulated: true,
     });
   };

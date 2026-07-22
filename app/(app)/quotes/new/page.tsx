@@ -18,6 +18,7 @@ import { MaterialSpecificationSection } from "@/components/quotes/create/materia
 import { UnitsSection } from "@/components/quotes/create/units-section";
 import { PricingSummary } from "@/components/quotes/create/pricing-summary";
 import { blankQuote } from "@/lib/mock/quote";
+import { applyShutterFinishToUnits } from "@/lib/quote-pricing";
 import { quotesStore } from "@/lib/store/quotes-store";
 import { quoteTemplateStore } from "@/lib/store/quote-template-store";
 import { toastStore } from "@/lib/store/toast-store";
@@ -32,7 +33,14 @@ export default function CreateQuotePage() {
   const [quote, setQuote] = useState(initialQuote);
   const [clearOpen, setClearOpen] = useState(false);
 
-  const patchQuote = (patch: Partial<typeof quote>) => setQuote((q) => ({ ...q, ...patch }));
+  const patchQuote = (patch: Partial<typeof quote>) =>
+    setQuote((q) => {
+      const next = { ...q, ...patch };
+      if (patch.shutterFinishId !== undefined && patch.shutterFinishId !== q.shutterFinishId) {
+        next.units = applyShutterFinishToUnits(next.units, patch.shutterFinishId);
+      }
+      return next;
+    });
 
   const handleSave = () => {
     quotesStore.saveQuote(quote);
@@ -74,7 +82,7 @@ export default function CreateQuotePage() {
 
       <ClientDetailsSection quote={quote} onChange={patchQuote} />
       <MaterialSpecificationSection quote={quote} onChange={patchQuote} />
-      <UnitsSection units={quote.units} onChange={(units) => patchQuote({ units })} />
+      <UnitsSection units={quote.units} shutterFinishId={quote.shutterFinishId} onChange={(units) => patchQuote({ units })} />
       <PricingSummary quote={quote} onChange={patchQuote} />
 
       <ConfirmDialog
